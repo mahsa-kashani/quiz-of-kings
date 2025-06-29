@@ -1,5 +1,5 @@
 function App() {
-  return <></>;
+  return <div data-theme="forest">hello</div>;
 }
 
 export default App;
