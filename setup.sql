@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username VARCHAR(30) UNIQUE NOT NULL CHECK (char_length(username) >= 3),
   email VARCHAR(100) UNIQUE NOT NULL CHECK (position('@' IN email) > 1),
-  pass VARCHAR(100) NOT NULL CHECK (char_length(pass) >= 6),
+  pass TEXT NOT NULL,
   user_role TEXT CHECK (user_role IN ('player', 'admin', 'reviewer', 'moderator')) DEFAULT 'player',
   is_banned BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
