@@ -36,6 +36,7 @@ export const useAuthStore = create((set, get) => ({
       get().resetForm();
     } catch (err) {
       const message = err.response?.data?.message || "Something went wrong";
+      set({ user: null });
       toast.error(message);
     } finally {
       set({ loading: false });
@@ -53,6 +54,7 @@ export const useAuthStore = create((set, get) => ({
       get().resetForm();
     } catch (err) {
       const message = err.response?.data?.message || "Something went wrong";
+      set({ user: null });
       toast.error(message);
     } finally {
       set({ loading: false });

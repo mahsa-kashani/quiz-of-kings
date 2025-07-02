@@ -5,12 +5,13 @@ import morgan from "morgan";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import authRoute from "./routes/authRoute.js";
+import dashboardRoute from "./routes/dashboardRoute.js";
 import { sql } from "./config/db.js";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
-const JWTSECRET = process.env.JWTSECRET;
+const JWTSECRET = process.env.JWT_SECRET;
 const app = express();
 
 async function authenticateToken(req, res, next) {
@@ -21,11 +22,12 @@ async function authenticateToken(req, res, next) {
       .status(401)
       .json({ success: false, message: "access token not found" });
   jwt.verify(token, JWTSECRET, async (err, decoded) => {
+    console.log(err);
     if (err)
       return res
         .status(403)
         .json({ success: false, message: "access token expired or denied" });
-    const result = await db.query(`SELECT * FROM users WHERE id = $1`, [
+    const result = await sql.query(`SELECT * FROM users WHERE id = $1`, [
       decoded.id,
     ]);
     const user = result.rows[0];
@@ -45,7 +47,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors());
 app.use("/api/auth", authRoute);
-app.use("/api/dashboard", authenticateToken);
+app.use("/api/dashboard", authenticateToken, dashboardRoute);
 
 app.listen(PORT, () => {
   console.log("server is running on port " + PORT);
