@@ -1,14 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect } from "react";
+import LogoHeader from "../components/LogoHeader";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const { login, formData, setFormData, loading, resetForm } = useAuthStore();
   useEffect(() => {
     resetForm();
   }, [resetForm]);
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
+      <LogoHeader />
       <div className="bg-base-100 shadow-lg rounded-2xl w-full max-w-md p-8 space-y-6">
         <h2 className="text-3xl font-bold text-center text-primary">Login</h2>
 
@@ -16,7 +19,7 @@ export default function LoginPage() {
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            login();
+            login(navigate);
           }}
         >
           <input

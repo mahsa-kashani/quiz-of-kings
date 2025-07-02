@@ -24,7 +24,7 @@ export const useAuthStore = create((set, get) => ({
         password: "",
       },
     }),
-  signup: async (e) => {
+  signup: async (navigate) => {
     set({ loading: true });
     try {
       const { formData } = get();
@@ -32,6 +32,7 @@ export const useAuthStore = create((set, get) => ({
       set({ token: response.data.token, user: response.data.user });
       localStorage.setItem("token", response.data.token);
       toast.success("you've signed up successfully!");
+      navigate("/dashboard");
       get().resetForm();
     } catch (err) {
       const message = err.response?.data?.message || "Something went wrong";
@@ -40,7 +41,7 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
     }
   },
-  login: async (e) => {
+  login: async (navigate) => {
     set({ loading: true });
     try {
       const { formData } = get();
@@ -48,6 +49,7 @@ export const useAuthStore = create((set, get) => ({
       set({ token: response.data.token, user: response.data.user });
       localStorage.setItem("token", response.data.token);
       toast.success("you've logged in successfully!");
+      navigate("/dashboard");
       get().resetForm();
     } catch (err) {
       const message = err.response?.data?.message || "Something went wrong";
