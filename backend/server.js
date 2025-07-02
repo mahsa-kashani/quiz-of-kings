@@ -22,7 +22,6 @@ async function authenticateToken(req, res, next) {
       .status(401)
       .json({ success: false, message: "access token not found" });
   jwt.verify(token, JWTSECRET, async (err, decoded) => {
-    console.log(err);
     if (err)
       return res
         .status(403)

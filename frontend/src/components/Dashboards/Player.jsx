@@ -97,12 +97,6 @@ export default function PlayerDashboard() {
           </div>
         </div>
       </section>
-
-      {/* Expanded Stats */}
-      <PlayerProfileStats />
-
-      {/* Leaderboard Tabs */}
-      <LeaderboardTabs />
     </div>
   );
 }

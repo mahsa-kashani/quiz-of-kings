@@ -1,7 +1,7 @@
 import { sql } from "../config/db.js";
 
 export const getUserStats = async (req, res) => {
-  const { id, username, role } = req.user;
+  const { id } = req.user;
   try {
     const result = await sql.query(
       `SELECT * FROM user_statistics WHERE user_id=$1`,
@@ -12,18 +12,27 @@ export const getUserStats = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "User not found!" });
-    const all_time_score = await sql.query(
-      `SELECT all_time_score FROM leaderboard WHERE user_id=$1`,
+    const leaderboard = await sql.query(
+      `SELECT user_id, user_rank, all_time_score
+        FROM (
+        SELECT user_id, all_time_score,
+                RANK() OVER (ORDER BY all_time_score DESC) AS user_rank
+        FROM leaderboard
+        ) ranked
+        WHERE user_id = $1;
+        `,
       [id]
     );
-    res
-      .status(201)
-      .json({
-        success: true,
-        userStats,
-        user: req.user,
-        all_time_score: all_time_score[0],
-      });
+    const { user_rank, all_time_score } = leaderboard.rows[0];
+    console.log(user_rank);
+
+    res.status(201).json({
+      success: true,
+      userStats,
+      user: req.user,
+      all_time_score,
+      user_rank,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Internal server error" });
