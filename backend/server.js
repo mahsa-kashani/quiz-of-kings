@@ -13,12 +13,6 @@ const PORT = process.env.PORT || 3000;
 const JWTSECRET = process.env.JWTSECRET;
 const app = express();
 
-app.use(helmet());
-app.use(morgan("dev"));
-app.use(express.json());
-app.use(cors());
-app.use("/api/auth", authRoute);
-
 async function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -45,6 +39,13 @@ async function authenticateToken(req, res, next) {
     next();
   });
 }
+
+app.use(helmet());
+app.use(morgan("dev"));
+app.use(express.json());
+app.use(cors());
+app.use("/api/auth", authRoute);
+app.use("/api/dashboard", authenticateToken);
 
 app.listen(PORT, () => {
   console.log("server is running on port " + PORT);
