@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS user_statistics (
 CREATE TABLE IF NOT EXISTS leaderboard (
   user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   username VARCHAR(30) UNIQUE NOT NULL CHECK (char_length(username) >= 3) REFERENCES users(username),
-  all_time_score INT DEFAULT 0
+  score INT DEFAULT 0
 );
 
 
@@ -149,11 +149,11 @@ answer_scores AS (
 
 SELECT 
   u.id AS user_id, u.username AS username,
-  COALESCE(gs.game_score, 0) + COALESCE(ascore.answer_score, 0) AS weekly_score
+  COALESCE(gs.game_score, 0) + COALESCE(ascore.answer_score, 0) AS score
 FROM users u
 LEFT JOIN game_scores gs ON u.id = gs.user_id
 LEFT JOIN answer_scores ascore ON u.id = ascore.user_id
-ORDER BY weekly_score DESC;
+ORDER BY score DESC;
 
 
 CREATE OR REPLACE VIEW leaderboard_monthly AS
@@ -202,11 +202,11 @@ answer_scores AS (
 
 SELECT 
   u.id AS user_id, u.username AS username,
-  COALESCE(gs.game_score) + COALESCE(ascore.answer_score, 0) AS monthly_score
+  COALESCE(gs.game_score) + COALESCE(ascore.answer_score, 0) AS score
 FROM users u
 LEFT JOIN game_scores gs ON u.id = gs.user_id
 LEFT JOIN answer_scores ascore ON u.id = ascore.user_id
-ORDER BY monthly_score DESC;
+ORDER BY score DESC;
 
 
 CREATE OR REPLACE VIEW match_history AS
@@ -333,7 +333,7 @@ BEGIN
 
   -- incrementing total score
   UPDATE leaderboard
-  SET all_time_score = all_time_score + base_score
+  SET score = score + base_score
   WHERE user_id = NEW.player_id;
 
   RETURN NEW;
@@ -365,7 +365,7 @@ BEGIN
       WHERE user_id = NEW.winner_id;
 
       UPDATE leaderboard
-      SET all_time_score = all_time_score + 100
+      SET score = score + 100
       WHERE user_id = NEW.winner_id;
     END IF;
     -- score for tie
@@ -375,19 +375,19 @@ BEGIN
       WHERE user_id IN (NEW.player1_id, NEW.player2_id);
 
       UPDATE leaderboard
-      SET all_time_score = all_time_score + 50
+      SET score = score + 50
       WHERE user_id IN (NEW.player1_id, NEW.player2_id);
     END IF;
 
     -- score for loser
     IF NEW.player1_id IS NOT NULL AND NEW.winner_id IS DISTINCT FROM NEW.player1_id THEN
       UPDATE user_statistics SET xp = xp + 10 WHERE user_id = NEW.player1_id;
-      UPDATE leaderboard SET all_time_score = all_time_score + 20 WHERE user_id = NEW.player1_id;
+      UPDATE leaderboard SET score = score + 20 WHERE user_id = NEW.player1_id;
     END IF;
 
     IF NEW.player2_id IS NOT NULL AND NEW.winner_id IS DISTINCT FROM NEW.player2_id THEN
       UPDATE user_statistics SET xp = xp + 10 WHERE user_id = NEW.player2_id;
-      UPDATE leaderboard SET all_time_score = all_time_score + 20 WHERE user_id = NEW.player2_id;
+      UPDATE leaderboard SET score = score + 20 WHERE user_id = NEW.player2_id;
     END IF;
   END IF;
 

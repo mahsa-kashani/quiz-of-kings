@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Crown, User, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import PlayerProfileStats from "../PlayerProfileStats";
-import LeaderboardTabs from "../LeaderboardTabs";
+import PlayerProfileStats from "../../Pages/PlayerProfileStats";
+import LeaderboardTabs from "../../Pages/LeaderboardTabs";
 import { useDashboardStore } from "../../store/useDashboardStore";
 import LogoHeader from "../LogoHeader";
 

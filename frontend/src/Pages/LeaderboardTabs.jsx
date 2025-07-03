@@ -12,6 +12,8 @@ export default function LeaderboardTabs() {
     weeklyLeaderboard,
     monthlyLeaderboard,
     userStats,
+    error,
+    loading,
   } = useDashboardStore();
 
   const [selectedTab, setSelectedTab] = useState("global");
@@ -27,6 +29,25 @@ export default function LeaderboardTabs() {
     weekly: weeklyLeaderboard,
     monthly: monthlyLeaderboard,
   };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-base-200">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center bg-base-200 px-4">
+        <h2 className="text-2xl font-bold text-error mb-2">Error</h2>
+        <p className="text-base-content/70">{error}</p>
+        <Link to="/" className="mt-4 btn btn-outline btn-error">
+          Go Back Home
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen px-6 py-8 bg-base-200 space-y-6">
@@ -66,7 +87,7 @@ export default function LeaderboardTabs() {
                 key={user.user_id}
                 className={
                   user.user_id === userStats.id
-                    ? "bg-primary/20 font-semibold"
+                    ? "bg-primary/20 font-semibold text-primary"
                     : ""
                 }
               >

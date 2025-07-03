@@ -13,24 +13,24 @@ export const getUserStats = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found!" });
     const leaderboard = await sql.query(
-      `SELECT user_id, user_rank, all_time_score
+      `SELECT user_id, user_rank, score
         FROM (
-        SELECT user_id, all_time_score,
-                RANK() OVER (ORDER BY all_time_score DESC) AS user_rank
+        SELECT user_id, score,
+                RANK() OVER (ORDER BY score DESC) AS user_rank
         FROM leaderboard
         ) ranked
         WHERE user_id = $1;
         `,
       [id]
     );
-    const { user_rank, all_time_score } = leaderboard.rows[0];
+    const { user_rank, score } = leaderboard.rows[0];
     console.log(user_rank);
 
     res.status(201).json({
       success: true,
       userStats,
       user: req.user,
-      all_time_score,
+      all_time_score: score,
       user_rank,
     });
   } catch (err) {

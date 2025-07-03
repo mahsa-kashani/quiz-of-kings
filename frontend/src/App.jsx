@@ -4,8 +4,8 @@ import SignupPage from "./Pages/SignupPage";
 import LoginPage from "./Pages/LoginPage";
 import DashboardPage from "./Pages/DashboardPage";
 import { Toaster } from "react-hot-toast";
-import PlayerProfileStats from "./components/PlayerProfileStats";
-import LeaderboardTabs from "./components/LeaderboardTabs";
+import PlayerProfileStats from "./Pages/PlayerProfileStats";
+import LeaderboardTabs from "./Pages/LeaderboardTabs";
 
 function App() {
   return (
