@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const BASE_URL = "http://localhost:3000/api/questions";
 
@@ -28,9 +29,27 @@ export const useQuestionStore = create((set, get) => ({
     },
     correct_option: "A",
     category: "",
+    category_id: null,
     difficulty: "easy",
   },
   categories: [],
+  userQuestions: [],
+  fetchUserQuestions: async () => {
+    set({ loading: true });
+    try {
+      const response = await axios.get("/user");
+      set({ userQuestions: response.data.questions });
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Something went wrong";
+      set({
+        error: message,
+        userQuestions: [],
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
   fetchCategories: async () => {
     set({ loading: true });
     try {
@@ -60,18 +79,24 @@ export const useQuestionStore = create((set, get) => ({
         },
         correct_option: "A",
         category: "",
+        category_id: null,
         difficulty: "easy",
       },
     }),
 
   submitQuestion: async (navigate) => {
+    set({ loading: true });
     try {
-      // TODO: Replace with real API call
-      console.log("Submitting question", formData);
+      const { formData } = get();
+      await axiosInstance.post("/new", formData);
       toast.success("Question submitted for review!");
+      get().resetForm();
       navigate("/question/status");
     } catch (err) {
-      toast.error("Failed to submit question");
+      const message = err.response?.data?.message || "Something went wrong";
+      toast.error(message);
+    } finally {
+      set({ loading: false });
     }
   },
 }));

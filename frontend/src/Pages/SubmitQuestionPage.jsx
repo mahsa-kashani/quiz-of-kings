@@ -15,12 +15,44 @@ export default function SubmitQuestionPage() {
     resetForm,
     categories,
     fetchCategories,
+    loading,
+    error,
   } = useQuestionStore();
 
   useEffect(() => {
     resetForm();
     fetchCategories();
-  }, [resetForm, fetchCategories]);
+  }, []);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      setFormData({
+        ...formData,
+        category: categories[0].category_name,
+        category_id: categories[0].id,
+      });
+    }
+  }, [categories]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-base-200">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center bg-base-200 px-4">
+        <h2 className="text-2xl font-bold text-error mb-2">Error</h2>
+        <p className="text-base-content/70">{error}</p>
+        <Link to="/" className="mt-4 btn btn-outline btn-error">
+          Go Back Home
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen px-6 py-10 bg-base-200">
@@ -148,13 +180,19 @@ export default function SubmitQuestionPage() {
           <select
             name="category"
             className="select select-bordered w-full"
-            value={formData.category}
-            onChange={(e) =>
+            value={formData.category.category_name}
+            onChange={(e) => {
+              const selectedName = e.target.value;
+              const selectedCategory = categories.find(
+                (cat) => cat.category_name === selectedName
+              );
+
               setFormData({
                 ...formData,
-                category: e.target.value,
-              })
-            }
+                category: selectedName,
+                category_id: selectedCategory?.id || null,
+              });
+            }}
           >
             {categories.map((cat) => (
               <option value={cat.category_name} key={cat.id}>

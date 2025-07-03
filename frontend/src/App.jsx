@@ -8,6 +8,7 @@ import PlayerProfileStats from "./Pages/PlayerProfileStats";
 import LeaderboardTabs from "./Pages/LeaderboardTabs";
 import QuestionPanel from "./Pages/QuestionPanel";
 import SubmitQuestionPage from "./Pages/SubmitQuestionPage";
+import QuestionStatusPage from "./Pages/QuestionStatusPage";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/leaderboard" element={<LeaderboardTabs />} />
         <Route path="/question" element={<QuestionPanel />} />
         <Route path="/question/new" element={<SubmitQuestionPage />} />
+        <Route path="/question/status" element={<QuestionStatusPage />} />
       </Routes>
       <Toaster />
     </div>
