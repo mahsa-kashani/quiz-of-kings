@@ -6,6 +6,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import authRoute from "./routes/authRoute.js";
 import dashboardRoute from "./routes/dashboardRoute.js";
+import questionRoute from "./routes/questionRoute.js";
 import { sql } from "./config/db.js";
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.use(express.json());
 app.use(cors());
 app.use("/api/auth", authRoute);
 app.use("/api/dashboard", authenticateToken, dashboardRoute);
+app.use("/api/questions", authenticateToken, questionRoute);
 
 app.listen(PORT, () => {
   console.log("server is running on port " + PORT);

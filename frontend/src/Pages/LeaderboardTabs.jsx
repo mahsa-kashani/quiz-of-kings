@@ -1,7 +1,7 @@
 import { useDashboardStore } from "../store/useDashboardStore";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import BackToDashboard from "../components/BackToDashboard";
 
 export default function LeaderboardTabs() {
   const {
@@ -51,10 +51,7 @@ export default function LeaderboardTabs() {
 
   return (
     <div className="min-h-screen px-6 py-8 bg-base-200 space-y-6">
-      <Link to="/dashboard" className="btn btn-sm btn-outline">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
-      </Link>
+      <BackToDashboard />
 
       <div className="text-center space-y-1">
         <h2 className="text-3xl font-bold text-warning">Leaderboard</h2>

@@ -8,10 +8,13 @@ export const getUserStats = async (req, res) => {
       [id]
     );
     const userStats = result.rows[0];
-    if (!userStats)
+    if (!userStats) {
+      console.log("user status not found in db");
       return res
         .status(404)
         .json({ success: false, message: "User not found!" });
+    }
+
     const leaderboard = await sql.query(
       `SELECT user_id, user_rank, score
         FROM (

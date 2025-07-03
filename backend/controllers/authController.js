@@ -35,7 +35,7 @@ export const signup = async (req, res) => {
     const result = await sql.query(
       `INSERT INTO users(username , email , pass)
         VALUES ($1 , $2 , $3)
-        RETURNING *
+        RETURNING id,username,email,user_role,is_banned,created_at
         `,
       [username, email, hashedPassword]
     );
@@ -56,12 +56,17 @@ export const login = async (req, res) => {
             WHERE username=$1`,
       [username]
     );
+
     const user = result.rows[0];
-    if (!user)
+    if (!user) {
+      console.log("user not found in db");
       return res
         .status(404)
         .json({ success: false, message: "user not found!" });
-    const match = await bcrypt.compare(password, user.pass);
+    }
+    const { pass, ...safeUser } = user;
+
+    const match = await bcrypt.compare(password, pass);
     if (!match)
       return res
         .status(401)
@@ -69,7 +74,7 @@ export const login = async (req, res) => {
     const token = generateToken(user);
     res.status(201).json({
       success: true,
-      user,
+      user: safeUser,
       token,
     });
   } catch (err) {

@@ -6,7 +6,7 @@ const BASE_URL = "http://localhost:3000/api/auth";
 const axiosInstance = axios.create({ baseURL: BASE_URL });
 
 export const useAuthStore = create((set, get) => ({
-  user: null,
+  user: JSON.parse(localStorage.getItem("user")) || null,
   token: localStorage.getItem("token") || null,
   loading: false,
   error: null,
@@ -31,6 +31,7 @@ export const useAuthStore = create((set, get) => ({
       const response = await axiosInstance.post("/signup", formData);
       set({ token: response.data.token, user: response.data.user });
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", response.data.user);
       toast.success("you've signed up successfully!");
       navigate("/dashboard");
       get().resetForm();
@@ -49,6 +50,7 @@ export const useAuthStore = create((set, get) => ({
       const response = await axiosInstance.post("/login", formData);
       set({ token: response.data.token, user: response.data.user });
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       toast.success("you've logged in successfully!");
       navigate("/dashboard");
       get().resetForm();

@@ -6,6 +6,8 @@ import DashboardPage from "./Pages/DashboardPage";
 import { Toaster } from "react-hot-toast";
 import PlayerProfileStats from "./Pages/PlayerProfileStats";
 import LeaderboardTabs from "./Pages/LeaderboardTabs";
+import QuestionPanel from "./Pages/QuestionPanel";
+import SubmitQuestionPage from "./Pages/SubmitQuestionPage";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<PlayerProfileStats />} />
         <Route path="/leaderboard" element={<LeaderboardTabs />} />
+        <Route path="/question" element={<QuestionPanel />} />
+        <Route path="/question/new" element={<SubmitQuestionPage />} />
       </Routes>
       <Toaster />
     </div>
