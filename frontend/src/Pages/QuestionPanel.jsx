@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { FilePlus, ClipboardList } from "lucide-react";
-import BackToDashboard from "../components/BackToDashboard";
+import BackToPage from "../components/BackToPage";
 
 export default function QuestionPanel() {
   return (
     <div className="min-h-screen px-6 py-10 bg-base-200">
-      <BackToDashboard />
+      <BackToPage page={"dashboard"} />
       <h2 className="text-4xl font-bold text-center text-info mb-24">
         Question Panel
       </h2>

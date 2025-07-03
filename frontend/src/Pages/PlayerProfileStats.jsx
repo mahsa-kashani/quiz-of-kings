@@ -2,7 +2,7 @@ import { useDashboardStore } from "../store/useDashboardStore";
 import { useEffect } from "react";
 import { ArrowLeft, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
-import BackToDashboard from "../components/BackToDashboard";
+import BackToPage from "../components/BackToPage";
 
 export default function PlayerProfileStats() {
   const { userStats, fetchUserStats, loading, error } = useDashboardStore();
@@ -37,7 +37,7 @@ export default function PlayerProfileStats() {
 
   return (
     <div className="min-h-screen px-6 py-8 bg-base-200 space-y-6">
-      <BackToDashboard />
+      <BackToPage page={"dashboard"} />
 
       <div className="text-center space-y-1">
         <h2 className="text-3xl font-bold text-primary">Player Profile</h2>

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { FilePlus } from "lucide-react";
-import BackToDashboard from "../components/BackToDashboard";
+import BackToPage from "../components/BackToPage";
 import { useEffect } from "react";
 import { useQuestionStore } from "../store/useQuestionStore";
 
@@ -24,7 +24,7 @@ export default function SubmitQuestionPage() {
 
   return (
     <div className="min-h-screen px-6 py-10 bg-base-200">
-      <BackToDashboard />
+      <BackToPage page={"question"} />
       <h2 className="text-3xl font-bold text-center text-info mb-10">
         Submit New Question
       </h2>
@@ -138,8 +138,8 @@ export default function SubmitQuestionPage() {
               })
             }
           >
-            {["easy", "medium", "hard"].map((level) => (
-              <option value={level}>
+            {["easy", "medium", "hard"].map((level, index) => (
+              <option value={level} key={index}>
                 {level.charAt(0).toUpperCase() + level.slice(1)}
               </option>
             ))}
@@ -157,8 +157,9 @@ export default function SubmitQuestionPage() {
             }
           >
             {categories.map((cat) => (
-              <option value={cat}>
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              <option value={cat.category_name} key={cat.id}>
+                {cat.category_name.charAt(0).toUpperCase() +
+                  cat.category_name.slice(1)}
               </option>
             ))}
           </select>

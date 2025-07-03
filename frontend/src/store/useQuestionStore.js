@@ -34,8 +34,8 @@ export const useQuestionStore = create((set, get) => ({
   fetchCategories: async () => {
     set({ loading: true });
     try {
-      const response = axiosInstance.get("/categories");
-      set({ categories });
+      const response = await axiosInstance.get("/categories");
+      set({ categories: response.data.categories });
     } catch (err) {
       console.log(err);
       const message = err.response?.data?.message || "Something went wrong";

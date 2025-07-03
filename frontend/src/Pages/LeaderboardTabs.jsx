@@ -1,7 +1,7 @@
 import { useDashboardStore } from "../store/useDashboardStore";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import BackToDashboard from "../components/BackToDashboard";
+import BackToPage from "../components/BackToPage";
 
 export default function LeaderboardTabs() {
   const {
@@ -51,7 +51,7 @@ export default function LeaderboardTabs() {
 
   return (
     <div className="min-h-screen px-6 py-8 bg-base-200 space-y-6">
-      <BackToDashboard />
+      <BackToPage page={"dashboard"} />
 
       <div className="text-center space-y-1">
         <h2 className="text-3xl font-bold text-warning">Leaderboard</h2>
