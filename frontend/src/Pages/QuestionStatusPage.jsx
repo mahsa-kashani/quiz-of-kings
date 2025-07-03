@@ -29,7 +29,7 @@ export default function QuestionStatusPage() {
             Go Back Home
           </Link>
         </div>
-      ) : userQuestions.length === 0 ? (
+      ) : userQuestions?.length === 0 ? (
         <div className="flex justify-center items-center min-h-[30vh]">
           <p className="text-center text-base-content/70 text-xl">
             You haven’t submitted any questions yet.
@@ -37,7 +37,7 @@ export default function QuestionStatusPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {userQuestions.map((q) => (
+          {userQuestions?.map((q) => (
             <div
               key={q.id}
               className="card border border-base-content/10 bg-base-100 shadow-sm"
@@ -47,15 +47,19 @@ export default function QuestionStatusPage() {
                   {q.question_text}
                 </h3>
                 <ul className="list-disc ml-5 text-sm text-base-content/80">
-                  <li>Option A: {q.option_a}</li>
-                  <li>Option B: {q.option_b}</li>
-                  <li>Option C: {q.option_c}</li>
-                  <li>Option D: {q.option_d}</li>
+                  {q.options?.map((opt, index) => (
+                    <li key={index}>
+                      Option {String.fromCharCode(65 + index)}: {opt}
+                    </li>
+                  ))}
                 </ul>
                 <p className="mt-2">
                   <span className="font-semibold">Correct Option:</span>{" "}
-                  {q.correct_option}
+                  <span className="text-base-content/80">
+                    {q.correct_option}
+                  </span>
                 </p>
+
                 <p>
                   <span className="font-semibold">Category:</span>{" "}
                   {q.category_name}
@@ -68,17 +72,18 @@ export default function QuestionStatusPage() {
                   <span className="font-semibold">Status:</span>{" "}
                   <span
                     className={
-                      q.status === "approved"
+                      q.approval_status === "approved"
                         ? "text-success"
-                        : q.status === "rejected"
+                        : q.approval_status === "rejected"
                         ? "text-error"
                         : "text-warning"
                     }
                   >
-                    {q.status.charAt(0).toUpperCase() + q.status.slice(1)}
+                    {q.approval_status.charAt(0).toUpperCase() +
+                      q.approval_status.slice(1)}
                   </span>
                 </p>
-                {q.status === "rejected" && q.rejection_reason && (
+                {q.approval_status === "rejected" && q.rejection_reason && (
                   <p className="text-sm text-error mt-1">
                     <span className="font-semibold">Reason:</span>{" "}
                     {q.rejection_reason}

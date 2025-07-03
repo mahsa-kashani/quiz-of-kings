@@ -13,7 +13,7 @@ export const getCategories = async (req, res) => {
 };
 
 export const submitQuestion = async (req, res) => {
-  const { id, username, role } = req.user;
+  const { id } = req.user;
   const {
     question_text,
     options,
@@ -72,6 +72,39 @@ export const submitQuestion = async (req, res) => {
         optionsResult.rows[3].id,
       ]
     );
+    res.status(201).json({ success: true });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getUserQuestions = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const result = await sql.query(
+      `SELECT
+        q.id,
+        q.question_text,
+        q.difficulty,
+        c.category_name,
+        q.approval_status,
+        q.rejection_reason,
+        correct_option.option_text AS correct_option,
+        json_agg(o.option_text ORDER BY o.id) AS options
+        FROM questions q
+        JOIN categories c ON q.category_id = c.id
+        JOIN options correct_option ON q.correct_option_id = correct_option.id
+        JOIN question_option qo ON qo.question_id = q.id
+        JOIN options o ON o.id = qo.option_id
+        WHERE q.author_id = $1
+        GROUP BY q.id, q.question_text, q.difficulty, c.category_name,
+                q.approval_status, q.rejection_reason, correct_option.option_text
+        ORDER BY q.id DESC;
+    `,
+      [id]
+    );
+    res.status(201).json({ success: true, questions: result.rows });
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Internal server error" });

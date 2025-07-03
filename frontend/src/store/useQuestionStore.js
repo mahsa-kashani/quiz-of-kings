@@ -13,7 +13,7 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
-    Promise.reject(error);
+    return Promise.reject(error);
   }
 );
 export const useQuestionStore = create((set, get) => ({
@@ -37,7 +37,7 @@ export const useQuestionStore = create((set, get) => ({
   fetchUserQuestions: async () => {
     set({ loading: true });
     try {
-      const response = await axios.get("/user");
+      const response = await axiosInstance.get("/user");
       set({ userQuestions: response.data.questions });
     } catch (err) {
       console.log(err);

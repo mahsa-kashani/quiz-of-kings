@@ -31,7 +31,7 @@ export const useAuthStore = create((set, get) => ({
       const response = await axiosInstance.post("/signup", formData);
       set({ token: response.data.token, user: response.data.user });
       localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", response.data.user);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       toast.success("you've signed up successfully!");
       navigate("/dashboard");
       get().resetForm();

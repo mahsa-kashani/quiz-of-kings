@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS questions (
   correct_option_id INT REFERENCES options(id),  
   category_id INT REFERENCES categories(id) ON DELETE CASCADE,
   author_id INT REFERENCES users(id) ON DELETE CASCADE,
-  approval_status TEXT CHECK (approval_status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending'
+  approval_status TEXT CHECK (approval_status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+  rejection_reason TEXT 
 );
 
 CREATE TABLE IF NOT EXISTS question_option (
