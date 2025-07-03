@@ -11,7 +11,7 @@ export default function LeaderboardTabs() {
     globalLeaderboard,
     weeklyLeaderboard,
     monthlyLeaderboard,
-    playerStats,
+    userStats,
   } = useDashboardStore();
 
   const [selectedTab, setSelectedTab] = useState("global");
@@ -20,7 +20,7 @@ export default function LeaderboardTabs() {
     fetchGlobalLeaderboard();
     fetchWeeklyLeaderboard();
     fetchMonthlyLeaderboard();
-  }, []);
+  }, [fetchGlobalLeaderboard, fetchWeeklyLeaderboard, fetchMonthlyLeaderboard]);
 
   const leaderboards = {
     global: globalLeaderboard,
@@ -65,7 +65,7 @@ export default function LeaderboardTabs() {
               <tr
                 key={user.user_id}
                 className={
-                  user.user_id === playerStats.id
+                  user.user_id === userStats.id
                     ? "bg-primary/20 font-semibold"
                     : ""
                 }

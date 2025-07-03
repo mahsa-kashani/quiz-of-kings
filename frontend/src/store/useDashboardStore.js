@@ -21,6 +21,7 @@ export const useDashboardStore = create((set, get) => ({
   error: null,
   userStats: {
     username: "",
+    id: 0,
     all_time_score: 0,
     xp: 0,
     games_played: 0,
@@ -30,6 +31,60 @@ export const useDashboardStore = create((set, get) => ({
     average_accuracy: 0,
     global_rank: 0,
   },
+
+  globalLeaderboard: [],
+  weeklyLeaderboard: [],
+  monthlyLeaderboard: [],
+
+  fetchGlobalLeaderboard: async () => {
+    set({ loading: true });
+    try {
+      const response = await axiosInstance.get("/leaderboard/global");
+      set({ globalLeaderboard: response.data.leaderboard });
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Something went wrong";
+      set({
+        error: message,
+        globalLeaderboard: [],
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  fetchWeeklyLeaderboard: async () => {
+    set({ loading: true });
+    try {
+      const response = await axiosInstance.get("/leaderboard/weekly");
+      set({ weeklyLeaderboard: response.data.leaderboard });
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Something went wrong";
+      set({
+        error: message,
+        weeklyLeaderboard: [],
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  fetchMonthlyLeaderboard: async () => {
+    set({ loading: true });
+    try {
+      const response = await axiosInstance.get("/leaderboard/monthly");
+      set({ monthlyLeaderboard: response.data.leaderboard });
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Something went wrong";
+      set({
+        error: message,
+        monthlyLeaderboard: [],
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
   fetchUserStats: async () => {
     set({ loading: true });
     try {
@@ -47,6 +102,7 @@ export const useDashboardStore = create((set, get) => ({
           correct_answers: userStats.correct_answers,
           average_accuracy: userStats.average_accuracy,
           global_rank: user_rank,
+          id: user.id,
         },
       });
     } catch (err) {

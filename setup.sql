@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS user_statistics (
 
 CREATE TABLE IF NOT EXISTS leaderboard (
   user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  username VARCHAR(30) UNIQUE NOT NULL CHECK (char_length(username) >= 3) REFERENCES users(username),
   all_time_score INT DEFAULT 0
 );
 
@@ -147,7 +148,7 @@ answer_scores AS (
 )
 
 SELECT 
-  u.id AS user_id,
+  u.id AS user_id, u.username AS username,
   COALESCE(gs.game_score, 0) + COALESCE(ascore.answer_score, 0) AS weekly_score
 FROM users u
 LEFT JOIN game_scores gs ON u.id = gs.user_id
@@ -200,7 +201,7 @@ answer_scores AS (
 )
 
 SELECT 
-  u.id AS user_id,
+  u.id AS user_id, u.username AS username,
   COALESCE(gs.game_score) + COALESCE(ascore.answer_score, 0) AS monthly_score
 FROM users u
 LEFT JOIN game_scores gs ON u.id = gs.user_id
@@ -407,8 +408,8 @@ EXECUTE FUNCTION update_win_loss_scores();
 CREATE OR REPLACE FUNCTION insert_initial_leaderboard_stats()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO leaderboard (user_id)
-  VALUES (NEW.id);
+  INSERT INTO leaderboard (user_id,username)
+  VALUES (NEW.id,NEW.username);
   INSERT INTO user_statistics(user_id)
   VALUES (NEW.id);
   RETURN NEW;

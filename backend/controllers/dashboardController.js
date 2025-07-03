@@ -38,3 +38,35 @@ export const getUserStats = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+export const getLeaderboardGlobal = async (req, res) => {
+  try {
+    const result = await sql.query(
+      `SELECT * FROM leaderboard ORDER BY score DESC`
+    );
+    res.status(201).json({ success: true, leaderboard: result.rows });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getLeaderboardWeekly = async (req, res) => {
+  try {
+    const result = await sql.query(`SELECT * FROM leaderboard_weekly`);
+    res.status(201).json({ success: true, leaderboard: result.rows });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getLeaderboardMonthly = async (req, res) => {
+  try {
+    const result = await sql.query(`SELECT * FROM leaderboard_monthly`);
+    res.status(201).json({ success: true, leaderboard: result.rows });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
