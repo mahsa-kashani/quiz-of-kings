@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS rounds (
   id SERIAL PRIMARY KEY,
   game_id INT REFERENCES games(id) ON DELETE CASCADE,
   round_number INT NOT NULL,
-  question_id INT REFERENCES questions(id) 
+  question_id INT REFERENCES questions(id),
+  current_turn INT REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS round_answers (

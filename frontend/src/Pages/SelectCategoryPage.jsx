@@ -28,8 +28,8 @@ export default function SelectCategoryPage() {
 
   return (
     <div className="min-h-screen bg-base-200 p-6">
-      <div className="max-w-xl mx-auto bg-base-100 p-6 rounded-xl shadow-lg">
-        <h1 className="text-xl font-bold text-center mb-4 text-primary">
+      <div className="max-w-xl mx-auto bg-base-100 p-6 rounded-xl shadow-lg mt-10">
+        <h1 className="text-2xl font-bold text-center mb-16 text-primary">
           Select a Category for This Round
         </h1>
         {availableCategories.length === 0 ? (

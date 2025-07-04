@@ -27,7 +27,7 @@ function App() {
         <Route path="/question" element={<QuestionPanel />} />
         <Route path="/question/new" element={<SubmitQuestionPage />} />
         <Route path="/question/status" element={<QuestionStatusPage />} />
-        <Route path="/game/:id/category" element={<SelectCategoryPage />} />
+        <Route path="/game/:gameId/category" element={<SelectCategoryPage />} />
       </Routes>
       <Toaster />
     </div>

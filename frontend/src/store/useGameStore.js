@@ -23,29 +23,49 @@ export const useGameStore = create((set, get) => ({
   searching: false,
   game: {
     id: 0,
-    player1: {
-      id: 0,
-      username: "",
-    },
-    player2: {},
-    winner: {},
+    me: {},
+    opponent: null,
+    winner: null,
     status: "",
     created_at: "",
     ended_at: "",
     rounds: [],
   },
+
   rounds: [],
+  updateRoundAfterAnswer: (roundId, myAnswer) => {
+    const { rounds } = get();
+    const updated = rounds.map((r) =>
+      r.id === roundId
+        ? {
+            ...r,
+            answers: [...r.answers, myAnswer],
+          }
+        : r
+    );
+    set({ rounds: updated });
+  },
+
   findOpponentAndStartGame: async (navigate) => {
     set({ searching: true });
     try {
       const {
-        data: { game, isFirstPlayer },
+        data: { game, isFirstPlayer, players },
       } = await axiosInstance.post("/find-or-create");
-      set({ game: { id: game.id } });
+      set({
+        game: {
+          id: game.id,
+          status: game.game_status,
+          created_at: game.created_at,
+          ended_at: game.ended_at,
+        },
+      });
 
       if (isFirstPlayer) {
+        set({ game: { me: players[0] } });
         navigate(`/game/${game.id}/category`);
       } else {
+        set({ game: { opponent: players[0], me: players[1] } });
         navigate(`/game/${game.id}`);
       }
     } catch (err) {
@@ -60,8 +80,25 @@ export const useGameStore = create((set, get) => ({
   submitCategoryAndStartRound: async (cat, navigate, gameId) => {
     set({ loading: true });
     try {
-      const response = await axiosInstance.post("/:gameId/round", {
+      const {
+        data: { question, options, round, currentTurn },
+      } = await axiosInstance.post(`/${gameId}/round`, {
         category: cat,
+      });
+      const { rounds } = get();
+      set({
+        rounds: [
+          ...rounds,
+          {
+            id: round.id,
+            round_number: round.round_number,
+            category: cat,
+            currentTurn,
+            question,
+            options,
+            answers: [],
+          },
+        ],
       });
       navigate(`/game/${gameId}`);
     } catch (err) {

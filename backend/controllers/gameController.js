@@ -19,14 +19,7 @@ export const findOrCreateGame = async (req, res) => {
       FOR UPDATE SKIP LOCKED`,
       [id]
     );
-    //found game
-    if (result.rows.length > 0) {
-      game = await sql.query(
-        `UPDATE games SET player2_id = $1 , game_status='active' WHERE id = $2 
-        RETURNING *`,
-        [id, result.rows[0].id]
-      );
-      const playersQuery = `SELECT 
+    const playersQuery = `SELECT 
         u.id,
         u.username,
         COALESCE(l.score, 0) AS score,
@@ -41,6 +34,13 @@ export const findOrCreateGame = async (req, res) => {
         LEFT JOIN user_statistics us ON u.id = us.user_id
         WHERE g.id = $1
         ORDER BY player_order ASC;`;
+    //found game
+    if (result.rows.length > 0) {
+      game = await sql.query(
+        `UPDATE games SET player2_id = $1 , game_status='active' WHERE id = $2 
+        RETURNING *`,
+        [id, result.rows[0].id]
+      );
       players = await sql.query(playersQuery, [game.rows[0].id]);
       await sql.query(`COMMIT`);
       res.status(201).json({
@@ -57,14 +57,12 @@ export const findOrCreateGame = async (req, res) => {
     );
     players = await sql.query(playersQuery, [game.rows[0].id]);
     await sql.query(`COMMIT`);
-    return res
-      .status(201)
-      .json({
-        success: true,
-        game: game.rows[0],
-        isFirstPlayer: true,
-        players: players.rows,
-      });
+    return res.status(201).json({
+      success: true,
+      game: game.rows[0],
+      isFirstPlayer: true,
+      players: players.rows,
+    });
   } catch (err) {
     await sql.query(`ROLLBACK`);
     console.log(err);
@@ -124,7 +122,9 @@ export const createRound = async (req, res) => {
       [gameId, roundNumber, question.id]
     );
     round = round.rows[0];
-    res.status(201).json({ success: true, question, options, round });
+    res
+      .status(201)
+      .json({ success: true, question, options, round, currentTurn: id });
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Internal server error" });
