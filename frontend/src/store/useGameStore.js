@@ -31,15 +31,30 @@ export const useGameStore = create((set, get) => ({
     ended_at: "",
     rounds: [],
   },
-
   rounds: [],
+
+  updateRoundAfterAnswer: (roundId, myAnswer) => {
+    const { rounds } = get();
+    const updated = rounds.map((r) =>
+      r.id === roundId
+        ? {
+            ...r,
+            answers: [...r.answers, myAnswer],
+            currentTurn: 1,
+          }
+        : r
+    );
+    set({ rounds: updated });
+    console.log(updated);
+  },
   fetchGame: async (gameId) => {
+    set({ loading: true });
     try {
       const {
         data: { players, game },
       } = await axiosInstance.get(`/${gameId}`);
 
-      const myId = Number(localStorage.getItem("user"));
+      const myId = Number(JSON.parse(localStorage.getItem("user")).id);
 
       const me = players.find((p) => p.id === myId);
       const opponent = players.find((p) => p.id !== myId);
@@ -59,10 +74,13 @@ export const useGameStore = create((set, get) => ({
       console.log(err);
       const message = err.response?.data?.message || "Failed to load game info";
       set({ game: {}, error: message });
+    } finally {
+      set({ loading: false });
     }
   },
 
   fetchRounds: async (gameId) => {
+    set({ loading: true });
     try {
       const { data } = await axiosInstance.get(`/${gameId}/rounds`);
       // id, round_number, category, question, options, currentTurn, answers
@@ -72,25 +90,21 @@ export const useGameStore = create((set, get) => ({
       const message =
         err.response?.data?.message || "Failed to load round info";
       set({ rounds: [], error: message });
+    } finally {
+      set({ loading: false });
     }
   },
 
-  updateRoundAfterAnswer: (roundId, myAnswer) => {
-    const { rounds } = get();
-    const updated = rounds.map((r) =>
-      r.id === roundId
-        ? {
-            ...r,
-            answers: [...r.answers, myAnswer],
-            currentTurn: 1,
-          }
-        : r
-    );
-    set({ rounds: updated });
-    console.log(updated);
-  },
-  sendAnswers: async (roundId, answer) => {
-    updateRoundAfterAnswer(roundId, answer);
+  sendAnswers: async (gameId, roundId, answer) => {
+    try {
+      await axiosInstance.post(`/${gameId}/round/${roundId}/answer`, answer);
+      get().updateRoundAfterAnswer(roundId, answer);
+      toast.success("Answer submitted!");
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Failed to start game";
+      toast.error(message);
+    }
   },
 
   findOpponentAndStartGame: async (navigate) => {
@@ -149,8 +163,10 @@ export const useGameStore = create((set, get) => ({
       });
       navigate(`/game/${gameId}/round/${round.id}`);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to start round.");
+      console.log(err);
+      const message = err.response?.data?.message || "Failed to start round";
+      set({ rounds: [] });
+      toast.error(message);
     } finally {
       set({ loading: false });
     }

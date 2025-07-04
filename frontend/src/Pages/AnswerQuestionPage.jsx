@@ -6,8 +6,8 @@ import toast from "react-hot-toast";
 export default function AnswerQuestionPage() {
   const { gameId, roundId } = useParams();
   const navigate = useNavigate();
-  const { rounds, fetchRounds, sendAnswers } = useGameStore();
-  const alreadyAnswered = round?.answers?.some((ans) => ans.player_id === myId);
+  const { rounds, fetchRounds, sendAnswers, loading, error } = useGameStore();
+
   useEffect(() => {
     fetchRounds(gameId);
   }, [gameId]);
@@ -16,6 +16,7 @@ export default function AnswerQuestionPage() {
   const myId = Number(JSON.parse(localStorage.getItem("user")).id);
 
   const [selectedOptionId, setSelectedOptionId] = useState(null);
+  const [isAnswered, setIsAnswered] = useState(false);
   const [startTime, setStartTime] = useState(null);
   useEffect(() => {
     setStartTime(Date.now());
@@ -30,8 +31,8 @@ export default function AnswerQuestionPage() {
       time_taken: timeTaken / 1000,
     };
     setSelectedOptionId(optionId);
-    sendAnswers(round.id, myAnswer);
-    toast.success("Answer submitted!");
+    setIsAnswered(true);
+    sendAnswers(gameId, round.id, myAnswer);
 
     setTimeout(() => {
       navigate(`/game/${gameId}`);
@@ -46,6 +47,25 @@ export default function AnswerQuestionPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-base-200">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center bg-base-200 px-4">
+        <h2 className="text-2xl font-bold text-error mb-2">Error</h2>
+        <p className="text-base-content/70">{error}</p>
+        <Link to="/" className="mt-4 btn btn-outline btn-error">
+          Go Back Home
+        </Link>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-base-200 p-6 flex flex-col gap-6">
       <h1 className="text-2xl font-bold text-center text-primary">
@@ -59,39 +79,32 @@ export default function AnswerQuestionPage() {
         <div className="grid grid-cols-2 gap-4">
           {round.options.map((opt) => {
             const isSelected = selectedOptionId === opt.id;
-            const isAnswered = alreadyAnswered;
             const isCorrect = opt.id === round.question.correct_option_id;
+
             let btnClass = "btn btn-accent btn-outline";
 
             if (isAnswered) {
               if (isSelected && isCorrect) {
-                btnClass = "btn btn-success"; // correct answered
+                btnClass = "btn btn-success"; // correcet answered
               } else if (isSelected && !isCorrect) {
                 btnClass = "btn btn-error"; // wrong answered
               } else if (!isSelected && isCorrect) {
-                btnClass = "btn btn-success btn-outline"; // correct option
+                btnClass = "btn btn-success"; // correct option
               }
-            } else if (isSelected) {
-              btnClass = "btn btn-accent btn-success"; // selecting
             }
+
             return (
               <button
                 key={opt.id}
                 onClick={() => handleAnswer(opt.id)}
-                disabled={isAnswered}
                 className={btnClass}
+                disabled={isAnswered}
               >
                 {opt.option_text}
               </button>
             );
           })}
         </div>
-
-        {alreadyAnswered && (
-          <p className="text-sm text-center text-success mt-4">
-            You have answered this round.
-          </p>
-        )}
       </div>
     </div>
   );

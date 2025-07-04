@@ -1,5 +1,21 @@
 import { sql } from "../config/db.js";
 
+const playersQuery = `SELECT 
+        u.id,
+        u.username,
+        COALESCE(l.score, 0) AS score,
+        us.xp,
+        CASE 
+            WHEN u.id = g.player1_id THEN 1
+            ELSE 2
+        END AS player_order
+        FROM games g
+        JOIN users u ON u.id = g.player1_id OR u.id = g.player2_id
+        LEFT JOIN leaderboard l ON u.id = l.user_id
+        LEFT JOIN user_statistics us ON u.id = us.user_id
+        WHERE g.id = $1
+        ORDER BY player_order ASC;`;
+
 export const findOrCreateGame = async (req, res) => {
   const { id, role } = req.user;
   if (role !== "player") {
@@ -19,21 +35,7 @@ export const findOrCreateGame = async (req, res) => {
       FOR UPDATE SKIP LOCKED`,
       [id]
     );
-    const playersQuery = `SELECT 
-        u.id,
-        u.username,
-        COALESCE(l.score, 0) AS score,
-        us.xp,
-        CASE 
-            WHEN u.id = g.player1_id THEN 1
-            ELSE 2
-        END AS player_order
-        FROM games g
-        JOIN users u ON u.id = g.player1_id OR u.id = g.player2_id
-        LEFT JOIN leaderboard l ON u.id = l.user_id
-        LEFT JOIN user_statistics us ON u.id = us.user_id
-        WHERE g.id = $1
-        ORDER BY player_order ASC;`;
+
     //found game
     if (result.rows.length > 0) {
       game = await sql.query(
@@ -130,5 +132,83 @@ export const createRound = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-export const getGame = async (req, res) => {};
-export const getRounds = async (req, res) => {};
+export const getGame = async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    const gameResult = await sql.query(`SELECT * FROM games WHERE id = $1`, [
+      gameId,
+    ]);
+
+    if (gameResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    const game = gameResult.rows[0];
+
+    const playersResult = await sql.query(playersQuery, [gameId]);
+
+    return res.status(200).json({
+      success: true,
+      game,
+      players: playersResult.rows,
+    });
+  } catch (err) {
+    console.error("getGame error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getRounds = async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    const result = await sql.query(
+      `
+      SELECT 
+        r.id,
+        r.round_number,
+        c.category_name,
+        to_jsonb(q) AS question,
+        (
+            SELECT json_agg(json_build_object('id', o.id, 'option_text', o.option_text))
+            FROM question_option qo
+            JOIN options o ON o.id = qo.option_id
+            WHERE qo.question_id = q.id
+        ) AS options,
+        r.current_turn AS "currentTurn",
+        COALESCE(
+            json_agg(
+            json_build_object(
+                'player_id', ra.player_id,
+                'selected_option', ra.selected_option_id
+            )
+            ) FILTER (WHERE ra.round_id IS NOT NULL),
+            '[]'
+        ) AS answers
+        FROM rounds r
+        JOIN questions q ON q.id = r.question_id
+        JOIN categories c ON q.category_id = c.id
+        LEFT JOIN round_answers ra ON ra.round_id = r.id
+        WHERE r.game_id = $1
+        GROUP BY r.id, r.round_number, q.id, c.id
+        ORDER BY r.round_number;
+
+      `,
+      [gameId]
+    );
+
+    return res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("getRounds error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const addAnswer = async (req, res) => {};
