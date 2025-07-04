@@ -45,3 +45,12 @@ export const findOrCreateGame = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+export const createRound = async (req, res) => {
+  const { id, username, role } = req.user;
+  if (role !== "player") {
+    return res
+      .status(403)
+      .json({ success: false, message: "Only players can play a round" });
+  }
+};

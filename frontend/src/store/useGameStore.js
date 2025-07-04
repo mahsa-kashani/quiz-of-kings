@@ -20,13 +20,9 @@ axiosInstance.interceptors.request.use(
 export const useGameStore = create((set, get) => ({
   loading: false,
   error: null,
-  selectedCategory: null,
   searching: false,
   game: {},
   rounds: [],
-  setSelectedCategory: (category) => {
-    set({ selectedCategory: category });
-  },
   findOpponentAndStartGame: async (navigate) => {
     set({ searching: true });
     try {
@@ -47,6 +43,20 @@ export const useGameStore = create((set, get) => ({
       toast.error(message);
     } finally {
       set({ searching: false });
+    }
+  },
+  submitCategoryAndStartRound: async (cat, navigate, gameId) => {
+    set({ loading: true });
+    try {
+      const response = await axiosInstance.post("/:id/round", {
+        category: cat,
+      });
+      navigate(`/game/${gameId}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to start round.");
+    } finally {
+      set({ loading: false });
     }
   },
 }));

@@ -9,6 +9,7 @@ import LeaderboardTabs from "./Pages/LeaderboardTabs";
 import QuestionPanel from "./Pages/QuestionPanel";
 import SubmitQuestionPage from "./Pages/SubmitQuestionPage";
 import QuestionStatusPage from "./Pages/QuestionStatusPage";
+import SelectCategoryPage from "./Pages/SelectCategoryPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/question" element={<QuestionPanel />} />
         <Route path="/question/new" element={<SubmitQuestionPage />} />
         <Route path="/question/status" element={<QuestionStatusPage />} />
+        <Route path="/game/:id/category" element={<SelectCategoryPage />} />
       </Routes>
       <Toaster />
     </div>
