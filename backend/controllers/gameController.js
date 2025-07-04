@@ -43,6 +43,10 @@ export const findOrCreateGame = async (req, res) => {
         RETURNING *`,
         [id, result.rows[0].id]
       );
+      await sql.query(`UPDATE rounds SET current_turn=$1 WHERE game_id=$2`, [
+        id,
+        game.rows[0].id,
+      ]);
       players = await sql.query(playersQuery, [game.rows[0].id]);
       await sql.query(`COMMIT`);
       res.status(201).json({
@@ -211,4 +215,66 @@ export const getRounds = async (req, res) => {
   }
 };
 
-export const addAnswer = async (req, res) => {};
+export const submitAnswer = async (req, res) => {
+  const { roundId, gameId } = req.params;
+  const { selected_option_id, time_taken } = req.body;
+  const player_id = req.user.id;
+
+  try {
+    await sql.query("BEGIN");
+
+    // check if already answered
+    const check = await sql.query(
+      `SELECT * FROM round_answers WHERE round_id = $1 AND player_id = $2`,
+      [roundId, player_id]
+    );
+    if (check.rows.length > 0) {
+      await sql.query("ROLLBACK");
+      return res
+        .status(400)
+        .json({ success: false, message: "Already answered" });
+    }
+
+    // submit answer
+    await sql.query(
+      `INSERT INTO round_answers (round_id, player_id, selected_option_id, time_taken)
+       VALUES ($1, $2, $3, $4)`,
+      [roundId, player_id, selected_option_id, time_taken]
+    );
+
+    // get players_ids
+    const players = await sql.query(
+      `SELECT player1_id, player2_id FROM games WHERE id = $1`,
+      [gameId]
+    );
+    const { player1_id, player2_id } = players.rows[0];
+    const opponent_id = player_id === player1_id ? player2_id : player1_id;
+
+    // check num of answers
+    const answers = await sql.query(
+      `SELECT COUNT(*) FROM round_answers WHERE round_id = $1`,
+      [roundId]
+    );
+    const count = Number(answers.rows[0].count);
+
+    if (count === 1) {
+      // opponent turn
+      await sql.query(`UPDATE rounds SET current_turn = $1 WHERE id = $2`, [
+        opponent_id,
+        roundId,
+      ]);
+    } else {
+      // both answered
+      await sql.query(`UPDATE rounds SET current_turn = NULL WHERE id = $1`, [
+        roundId,
+      ]);
+    }
+
+    await sql.query("COMMIT");
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.log(err);
+    await sql.query("ROLLBACK");
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -435,6 +435,7 @@ INSERT INTO users (username, email, pass, user_role) VALUES
   ('sara456', 'sara@example.com', 'securepass2', 'player'),
   ('admin1', 'admin@example.com', 'adminpass', 'admin'),
   ('mahsa', 'mahsa12.kashani@gmail.com', '$2b$10$cxJLILUav/1tvxOD8WnyhOPAydJ6Swx6PupxCYbKb2pOouQRrmu.e', 'player');
+  ('ali', 'ali123@gmail.com', '$2b$10$Fu0P0Gbk63jdKUgXbWHDi.mMFuCp4CzB3Si7DNv4DHSkId5ayX5Nq', 'player');
 
 INSERT INTO categories (category_name) VALUES
   ('Science'),

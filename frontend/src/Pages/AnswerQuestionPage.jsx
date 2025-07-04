@@ -13,7 +13,6 @@ export default function AnswerQuestionPage() {
   }, [gameId]);
 
   const round = rounds.find((r) => r.id === Number(roundId));
-  const myId = Number(JSON.parse(localStorage.getItem("user")).id);
 
   const [selectedOptionId, setSelectedOptionId] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -26,7 +25,6 @@ export default function AnswerQuestionPage() {
     const endTime = Date.now();
     const timeTaken = endTime - startTime;
     const myAnswer = {
-      player_id: myId,
       selected_option_id: optionId,
       time_taken: timeTaken / 1000,
     };
@@ -36,7 +34,7 @@ export default function AnswerQuestionPage() {
 
     setTimeout(() => {
       navigate(`/game/${gameId}`);
-    }, 1000);
+    }, 2000);
   };
 
   if (!round) {
@@ -85,11 +83,14 @@ export default function AnswerQuestionPage() {
 
             if (isAnswered) {
               if (isSelected && isCorrect) {
-                btnClass = "btn btn-success"; // correcet answered
+                btnClass =
+                  "btn btn-success disabled:border-success disabled:text-white";
               } else if (isSelected && !isCorrect) {
-                btnClass = "btn btn-error"; // wrong answered
+                btnClass =
+                  "btn btn-error disabled:border-error disabled:text-white";
               } else if (!isSelected && isCorrect) {
-                btnClass = "btn btn-success"; // correct option
+                btnClass =
+                  "btn btn-success disabled:border-success disabled:text-white";
               }
             }
 

@@ -121,12 +121,15 @@ export const useGameStore = create((set, get) => ({
           ended_at: game.ended_at,
         },
       });
+      const myId = Number(JSON.parse(localStorage.getItem("user")).id);
+
+      const me = players.find((p) => p.id === myId);
+      const opponent = players.find((p) => p.id !== myId);
+      set({ game: { me, opponent } });
 
       if (isFirstPlayer) {
-        set({ game: { me: players[0] } });
         navigate(`/game/${game.id}/category`);
       } else {
-        set({ game: { opponent: players[0], me: players[1] } });
         navigate(`/game/${game.id}`);
       }
     } catch (err) {
