@@ -21,7 +21,19 @@ export const useGameStore = create((set, get) => ({
   loading: false,
   error: null,
   searching: false,
-  game: {},
+  game: {
+    id: 0,
+    player1: {
+      id: 0,
+      username: "",
+    },
+    player2: {},
+    winner: {},
+    status: "",
+    created_at: "",
+    ended_at: "",
+    rounds: [],
+  },
   rounds: [],
   findOpponentAndStartGame: async (navigate) => {
     set({ searching: true });
@@ -29,7 +41,7 @@ export const useGameStore = create((set, get) => ({
       const {
         data: { game, isFirstPlayer },
       } = await axiosInstance.post("/find-or-create");
-      set({ game });
+      set({ game: { id: game.id } });
 
       if (isFirstPlayer) {
         navigate(`/game/${game.id}/category`);
@@ -48,7 +60,7 @@ export const useGameStore = create((set, get) => ({
   submitCategoryAndStartRound: async (cat, navigate, gameId) => {
     set({ loading: true });
     try {
-      const response = await axiosInstance.post("/:id/round", {
+      const response = await axiosInstance.post("/:gameId/round", {
         category: cat,
       });
       navigate(`/game/${gameId}`);

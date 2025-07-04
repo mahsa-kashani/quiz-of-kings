@@ -7,6 +7,6 @@ import {
 const router = express.Router();
 
 router.post("/find-or-create", findOrCreateGame);
-router.post("/:id/round", createRound);
+router.post("/:gameId/round", createRound);
 
 export default router;

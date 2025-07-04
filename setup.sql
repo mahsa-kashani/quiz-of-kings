@@ -48,7 +48,6 @@ CREATE TABLE IF NOT EXISTS games (
   player2_id INT REFERENCES users(id) ON DELETE SET NULL,
   winner_id INT REFERENCES users(id) ON DELETE SET NULL,
   game_status TEXT CHECK (game_status IN ('active', 'completed','waiting')) DEFAULT 'waiting',
-  started_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   ended_at TIMESTAMP
 );
@@ -212,7 +211,7 @@ ORDER BY score DESC;
 
 
 CREATE OR REPLACE VIEW match_history AS
-SELECT g.id AS game_id, g.started_at, g.ended_at,
+SELECT g.id AS game_id, g.created_at, g.ended_at,
        u1.username AS player1, u2.username AS player2,
        u3.username AS winner
 FROM games g
