@@ -33,6 +33,48 @@ export const useGameStore = create((set, get) => ({
   },
 
   rounds: [],
+  fetchGame: async (gameId) => {
+    try {
+      const {
+        data: { players, game },
+      } = await axiosInstance.get(`/${gameId}`);
+
+      const myId = Number(localStorage.getItem("user"));
+
+      const me = players.find((p) => p.id === myId);
+      const opponent = players.find((p) => p.id !== myId);
+
+      set({
+        game: {
+          id: game.id,
+          status: game.game_status,
+          created_at: game.created_at,
+          ended_at: game.ended_at,
+          winner: game.winner,
+          me,
+          opponent,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Failed to load game info";
+      set({ game: {}, error: message });
+    }
+  },
+
+  fetchRounds: async (gameId) => {
+    try {
+      const { data } = await axiosInstance.get(`/${gameId}/rounds`);
+      // id, round_number, category, question, options, currentTurn, answers
+      set({ rounds: data });
+    } catch (err) {
+      console.log(err);
+      const message =
+        err.response?.data?.message || "Failed to load round info";
+      set({ rounds: [], error: message });
+    }
+  },
+
   updateRoundAfterAnswer: (roundId, myAnswer) => {
     const { rounds } = get();
     const updated = rounds.map((r) =>
@@ -40,10 +82,15 @@ export const useGameStore = create((set, get) => ({
         ? {
             ...r,
             answers: [...r.answers, myAnswer],
+            currentTurn: 1,
           }
         : r
     );
     set({ rounds: updated });
+    console.log(updated);
+  },
+  sendAnswers: async (roundId, answer) => {
+    updateRoundAfterAnswer(roundId, answer);
   },
 
   findOpponentAndStartGame: async (navigate) => {
@@ -92,7 +139,7 @@ export const useGameStore = create((set, get) => ({
           {
             id: round.id,
             round_number: round.round_number,
-            category: cat,
+            category: cat.category_name,
             currentTurn,
             question,
             options,
@@ -100,7 +147,7 @@ export const useGameStore = create((set, get) => ({
           },
         ],
       });
-      navigate(`/game/${gameId}`);
+      navigate(`/game/${gameId}/round/${round.id}`);
     } catch (err) {
       console.error(err);
       toast.error("Failed to start round.");

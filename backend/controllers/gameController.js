@@ -117,9 +117,9 @@ export const createRound = async (req, res) => {
     options = options.rows;
     let round = await sql.query(
       `
-        INSERT INTO rounds(game_id,round_number,question_id) VALUES ($1,$2,$3) RETURNING *
+        INSERT INTO rounds(game_id,round_number,question_id,current_turn) VALUES ($1,$2,$3,$4) RETURNING *
         `,
-      [gameId, roundNumber, question.id]
+      [gameId, roundNumber, question.id, id]
     );
     round = round.rows[0];
     res
@@ -130,3 +130,5 @@ export const createRound = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+export const getGame = async (req, res) => {};
+export const getRounds = async (req, res) => {};

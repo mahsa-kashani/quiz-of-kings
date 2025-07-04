@@ -10,6 +10,8 @@ import QuestionPanel from "./Pages/QuestionPanel";
 import SubmitQuestionPage from "./Pages/SubmitQuestionPage";
 import QuestionStatusPage from "./Pages/QuestionStatusPage";
 import SelectCategoryPage from "./Pages/SelectCategoryPage";
+import GamePage from "./Pages/GamePage";
+import AnswerQuestionPage from "./Pages/AnswerQuestionPage";
 
 function App() {
   return (
@@ -28,6 +30,11 @@ function App() {
         <Route path="/question/new" element={<SubmitQuestionPage />} />
         <Route path="/question/status" element={<QuestionStatusPage />} />
         <Route path="/game/:gameId/category" element={<SelectCategoryPage />} />
+        <Route path="/game/:gameId" element={<GamePage />} />
+        <Route
+          path="/game/:gameId/round/:roundId"
+          element={<AnswerQuestionPage />}
+        />
       </Routes>
       <Toaster />
     </div>
