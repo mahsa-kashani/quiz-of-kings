@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import authRoute from "./routes/authRoute.js";
 import dashboardRoute from "./routes/dashboardRoute.js";
 import questionRoute from "./routes/questionRoute.js";
+import gameRoute from "./routes/gameRoute.js";
 import { sql } from "./config/db.js";
 
 dotenv.config();
@@ -57,6 +58,7 @@ app.use(
 app.use("/api/auth", authRoute);
 app.use("/api/dashboard", authenticateToken, dashboardRoute);
 app.use("/api/questions", authenticateToken, questionRoute);
+app.use("/api/game", authenticateToken, gameRoute);
 
 app.listen(PORT, () => {
   console.log("server is running on port " + PORT);

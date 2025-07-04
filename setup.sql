@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS games (
   player1_id INT REFERENCES users(id) ON DELETE SET NULL,
   player2_id INT REFERENCES users(id) ON DELETE SET NULL,
   winner_id INT REFERENCES users(id) ON DELETE SET NULL,
-  game_status TEXT CHECK (game_status IN ('active', 'completed')) NOT NULL,
+  game_status TEXT CHECK (game_status IN ('active', 'completed')) DEFAULT 'active',
   started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   ended_at TIMESTAMP
 );
@@ -432,7 +432,8 @@ EXECUTE FUNCTION insert_initial_leaderboard_stats();
 INSERT INTO users (username, email, pass, user_role) VALUES
   ('ali123', 'ali@example.com', 'securepass1', 'player'),
   ('sara456', 'sara@example.com', 'securepass2', 'player'),
-  ('admin1', 'admin@example.com', 'adminpass', 'admin');
+  ('admin1', 'admin@example.com', 'adminpass', 'admin'),
+  ('mahsa', 'mahsa12.kashani@gmail.com', '$2b$10$cxJLILUav/1tvxOD8WnyhOPAydJ6Swx6PupxCYbKb2pOouQRrmu.e', 'player');
 
 INSERT INTO categories (category_name) VALUES
   ('Science'),

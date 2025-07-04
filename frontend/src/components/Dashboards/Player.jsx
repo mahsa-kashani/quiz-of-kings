@@ -1,13 +1,14 @@
-import { useEffect } from "react";
-import { Crown, User, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-import PlayerProfileStats from "../../Pages/PlayerProfileStats";
-import LeaderboardTabs from "../../Pages/LeaderboardTabs";
+import { useEffect, useState } from "react";
+import { User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../../store/useDashboardStore";
+import { useGameStore } from "../../store/useGameStore";
 import LogoHeader from "../LogoHeader";
 
 export default function PlayerDashboard() {
+  const navigate = useNavigate();
   const { userStats, fetchUserStats, error, loading } = useDashboardStore();
+  const { findOpponentAndStartGame, searching } = useGameStore();
 
   useEffect(() => {
     fetchUserStats();
@@ -80,9 +81,21 @@ export default function PlayerDashboard() {
           <div className="card-body">
             <h2 className="card-title text-success">Ready to Play?</h2>
             <p>Start a new quiz battle now!</p>
-            <Link to="/game/new" className="btn btn-success mt-4 self-start">
-              Start Game
-            </Link>
+            <button
+              onClick={() => {
+                findOpponentAndStartGame(navigate);
+              }}
+              className="btn btn-success mt-4 self-start"
+              disabled={searching}
+            >
+              {searching ? (
+                <>
+                  <span className="loading loading-spinner"></span> Searching...
+                </>
+              ) : (
+                "Start Game"
+              )}
+            </button>
           </div>
         </div>
 

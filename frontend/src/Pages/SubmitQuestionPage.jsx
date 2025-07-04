@@ -203,7 +203,11 @@ export default function SubmitQuestionPage() {
           </select>
         </div>
 
-        <button type="submit" className="btn btn-info w-full mt-4">
+        <button
+          type="submit"
+          className="btn btn-info w-full mt-4"
+          disabled={loading}
+        >
           <FilePlus className="w-4 h-4 mr-2" />
           Submit Question
         </button>
