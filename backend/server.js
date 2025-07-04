@@ -38,7 +38,7 @@ async function authenticateToken(req, res, next) {
         .status(403)
         .json({ success: false, message: "User does not exist or is banned" });
     }
-    req.user = user;
+    req.user = decoded;
     next();
   });
 }

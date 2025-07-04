@@ -27,7 +27,6 @@ export const getUserStats = async (req, res) => {
       [id]
     );
     const { user_rank, score } = leaderboard.rows[0];
-    console.log(user_rank);
 
     res.status(201).json({
       success: true,

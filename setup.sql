@@ -47,8 +47,9 @@ CREATE TABLE IF NOT EXISTS games (
   player1_id INT REFERENCES users(id) ON DELETE SET NULL,
   player2_id INT REFERENCES users(id) ON DELETE SET NULL,
   winner_id INT REFERENCES users(id) ON DELETE SET NULL,
-  game_status TEXT CHECK (game_status IN ('active', 'completed')) DEFAULT 'active',
-  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  game_status TEXT CHECK (game_status IN ('active', 'completed','waiting')) DEFAULT 'waiting',
+  started_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   ended_at TIMESTAMP
 );
 

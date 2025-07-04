@@ -37,7 +37,9 @@ export const useAuthStore = create((set, get) => ({
       get().resetForm();
     } catch (err) {
       const message = err.response?.data?.message || "Something went wrong";
-      set({ user: null });
+      localStorage.setItem("token", null);
+      localStorage.setItem("user", null);
+      set({ user: null, token: null });
       toast.error(message);
     } finally {
       set({ loading: false });
@@ -55,8 +57,11 @@ export const useAuthStore = create((set, get) => ({
       navigate("/dashboard");
       get().resetForm();
     } catch (err) {
+      console.log(err);
       const message = err.response?.data?.message || "Something went wrong";
-      set({ user: null });
+      localStorage.setItem("token", null);
+      localStorage.setItem("user", null);
+      set({ user: null, token: null });
       toast.error(message);
     } finally {
       set({ loading: false });

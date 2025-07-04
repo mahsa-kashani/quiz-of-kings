@@ -27,20 +27,23 @@ export const useGameStore = create((set, get) => ({
   setSelectedCategory: (category) => {
     set({ selectedCategory: category });
   },
-  findOpponentAndStartGame: async () => {
+  findOpponentAndStartGame: async (navigate) => {
     set({ searching: true });
     try {
-      const response = await axiosInstance.get();
+      const {
+        data: { game, isFirstPlayer },
+      } = await axiosInstance.post("/find-or-create");
+      set({ game });
 
-      // if (result.gameId && result.isFirstPlayer) {
-      //   navigate(`/game/${result.gameId}/category`);
-      // } else if (result.gameId) {
-      //   navigate(`/game/${result.gameId}`);
-      // } else {
-      //   toast.error("Unexpected server response");
-      // }
+      if (isFirstPlayer) {
+        navigate(`/game/${game.id}/category`);
+      } else {
+        navigate(`/game/${game.id}`);
+      }
     } catch (err) {
+      console.log(err);
       const message = err.response?.data?.message || "Failed to start game";
+      set({ game: {} });
       toast.error(message);
     } finally {
       set({ searching: false });
