@@ -104,7 +104,8 @@ export const useGameStore = create((set, get) => ({
     try {
       const {
         data: { game_status, ended_at, winner_id },
-      } = await axiosInstance.post(`/${gameId}/result`, winnerId);
+      } = await axiosInstance.post(`/${gameId}/result`, { winnerId });
+      console.log(ended_at, game_status);
       set((state) => ({
         game: {
           ...state.game,

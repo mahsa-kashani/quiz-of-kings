@@ -41,10 +41,12 @@ export const signup = async (req, res) => {
     );
     const user = result.rows[0];
     const token = generateToken(user);
-    res.status(201).json({ success: true, user, token });
+    return res.status(201).json({ success: true, user, token });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -73,13 +75,15 @@ export const login = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
     const token = generateToken(user);
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       user: safeUser,
       token,
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };

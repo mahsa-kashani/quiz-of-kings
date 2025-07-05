@@ -75,14 +75,15 @@ export default function GamePage() {
     me = game.player2;
     opponent = game.player1;
   }
-  const lastRound = rounds[rounds.length - 1];
 
+  const lastRound = rounds[rounds.length - 1];
   const isStarter =
-    (game.player1.id === myId && lastRound.round_number % 2) ||
-    (game.player2.id === myId && !(lastRound.round_number % 2));
+    (game.player1.id === myId && !(lastRound.round_number % 2)) ||
+    (game.player2?.id === myId && lastRound.round_number % 2);
 
   const isMyTurn =
-    (isStarter && !lastRound?.currentTurn) || lastRound?.currentTurn === myId;
+    (isStarter && !lastRound?.currentTurn && opponent) ||
+    lastRound?.currentTurn === myId;
 
   const handleTabChange = (tab) => {
     setAnimatingTab(""); // trigger re-render for animation
@@ -217,10 +218,7 @@ export default function GamePage() {
                       );
                     if (!a)
                       return <Clock className="w-5 h-5 text-base-content/50" />;
-                    if (
-                      (isStarter && !r.currentTurn) ||
-                      r.currentTurn !== myId
-                    ) {
+                    if (!r.currentTurn || r.currentTurn !== myId) {
                       return a.selected_option ===
                         r.question.correct_option_id ? (
                         <CheckCircle className="w-5 h-5 text-success" />

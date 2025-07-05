@@ -5,10 +5,14 @@ export const getCategories = async (req, res) => {
     const userResults = await sql.query(
       `SELECT * FROM categories ORDER BY category_name`
     );
-    res.status(201).json({ success: false, categories: userResults.rows });
+    return res
+      .status(201)
+      .json({ success: false, categories: userResults.rows });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -72,10 +76,12 @@ export const submitQuestion = async (req, res) => {
         optionsResult.rows[3].id,
       ]
     );
-    res.status(201).json({ success: true });
+    return res.status(201).json({ success: true });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -104,9 +110,11 @@ export const getUserQuestions = async (req, res) => {
     `,
       [id]
     );
-    res.status(201).json({ success: true, questions: result.rows });
+    return res.status(201).json({ success: true, questions: result.rows });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };

@@ -49,7 +49,7 @@ export const findOrCreateGame = async (req, res) => {
       ]);
       players = await sql.query(playersQuery, [game.rows[0].id]);
       await sql.query(`COMMIT`);
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         game: game.rows[0],
         isFirstPlayer: false,
@@ -72,7 +72,9 @@ export const findOrCreateGame = async (req, res) => {
   } catch (err) {
     await sql.query(`ROLLBACK`);
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -120,6 +122,7 @@ export const createRound = async (req, res) => {
         success: false,
         message: "No options found for this question",
       });
+    await sql.query("BEGIN");
     options = options.rows;
     let round = await sql.query(
       `
@@ -128,12 +131,16 @@ export const createRound = async (req, res) => {
       [gameId, roundNumber, question.id, id]
     );
     round = round.rows[0];
+    await sql.query("COMMIT");
     res
       .status(201)
       .json({ success: true, question, options, round, currentTurn: id });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    await sql.query("ROLLBACK");
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 export const getGame = async (req, res) => {
@@ -205,7 +212,6 @@ export const getRounds = async (req, res) => {
       `,
       [gameId]
     );
-
     return res.status(200).json(result.rows);
   } catch (err) {
     console.error("getRounds error:", err);
@@ -271,10 +277,62 @@ export const submitAnswer = async (req, res) => {
     }
 
     await sql.query("COMMIT");
-    res.status(200).json({ success: true });
+    return res.status(200).json({ success: true });
   } catch (err) {
     console.log(err);
     await sql.query("ROLLBACK");
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const submitResult = async (req, res) => {
+  const { winnerId } = req.body;
+  const { gameId } = req.params;
+  console.log(winnerId);
+  try {
+    await sql.query("BEGIN");
+
+    // if already submitted
+    const result = await sql.query(
+      "SELECT * FROM games WHERE id = $1 FOR UPDATE",
+      [gameId]
+    );
+
+    const game = result.rows[0];
+
+    if (!game) {
+      await sql.query("ROLLBACK");
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    if (game.winner_id !== null) {
+      // already submitted, no error
+      await sql.query("ROLLBACK");
+      return res.status(200).json({
+        success: true,
+        message: "Result already submitted",
+        game_status: game.game_status,
+        winner_id: game.winner_id,
+        ended_at: game.ended_at,
+      });
+    }
+
+    // submit game
+    const gameResult = await sql.query(
+      "UPDATE games SET winner_id = $1, game_status = 'completed', ended_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING winner_id,game_status,ended_at",
+      [winnerId, gameId]
+    );
+    const { game_status, ended_at, winner_id } = gameResult.rows[0];
+
+    await sql.query("COMMIT");
+    return res
+      .status(200)
+      .json({ success: true, game_status, ended_at, winner_id });
+  } catch (err) {
+    console.error(err);
+    await sql.query("ROLLBACK");
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

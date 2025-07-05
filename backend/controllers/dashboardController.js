@@ -28,7 +28,7 @@ export const getUserStats = async (req, res) => {
     );
     const { user_rank, score } = leaderboard.rows[0];
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       userStats,
       user: req.user,
@@ -37,7 +37,9 @@ export const getUserStats = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -46,29 +48,35 @@ export const getLeaderboardGlobal = async (req, res) => {
     const result = await sql.query(
       `SELECT * FROM leaderboard ORDER BY score DESC`
     );
-    res.status(201).json({ success: true, leaderboard: result.rows });
+    return res.status(201).json({ success: true, leaderboard: result.rows });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
 export const getLeaderboardWeekly = async (req, res) => {
   try {
     const result = await sql.query(`SELECT * FROM leaderboard_weekly`);
-    res.status(201).json({ success: true, leaderboard: result.rows });
+    return res.status(201).json({ success: true, leaderboard: result.rows });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
 export const getLeaderboardMonthly = async (req, res) => {
   try {
     const result = await sql.query(`SELECT * FROM leaderboard_monthly`);
-    res.status(201).json({ success: true, leaderboard: result.rows });
+    return res.status(201).json({ success: true, leaderboard: result.rows });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
