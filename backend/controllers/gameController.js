@@ -18,10 +18,11 @@ const playersQuery = `SELECT
 
 export const findOrCreateGame = async (req, res) => {
   const { id, role } = req.user;
-  if (role !== "player") {
-    return res
-      .status(403)
-      .json({ success: false, message: "Only players can start a game" });
+  if (role !== "player" && role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to start a game",
+    });
   }
   let game = null;
   let players = null;
@@ -88,11 +89,35 @@ export const createRound = async (req, res) => {
       .json({ success: false, message: "Only players can play a round" });
   }
   try {
+    const checkGame = await sql.query(`SELECT * FROM games WHERE id=$1`, [
+      gameId,
+    ]);
+    if (checkGame.rows.length === 0)
+      return res.status(404).json({
+        success: false,
+        message: "No games found",
+      });
+    if (
+      id !== checkGame.player1_id &&
+      id !== checkGame.player2_id &&
+      role !== "admin"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied: You do not have permission to access this game.",
+      });
+    }
     const result = await sql.query(
       `SELECT COUNT(*) FROM rounds WHERE game_id = $1`,
       [gameId]
     );
     const currentCount = Number(result.rows[0].count);
+    if (currentCount === 4)
+      return res.status(409).json({
+        success: false,
+        message: "Round limit reached",
+      });
     const roundNumber = currentCount + 1;
     let question = await sql.query(
       `SELECT *
@@ -145,6 +170,7 @@ export const createRound = async (req, res) => {
 };
 export const getGame = async (req, res) => {
   const { gameId } = req.params;
+  const { id, role } = req.user;
 
   try {
     const gameResult = await sql.query(`SELECT * FROM games WHERE id = $1`, [
@@ -158,6 +184,12 @@ export const getGame = async (req, res) => {
     }
 
     const game = gameResult.rows[0];
+
+    if (id !== game.player1_id && id !== game.player2_id && role !== "admin")
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: You do not have permission to view this game.",
+      });
 
     const playersResult = await sql.query(playersQuery, [gameId]);
 
@@ -176,8 +208,27 @@ export const getGame = async (req, res) => {
 
 export const getRounds = async (req, res) => {
   const { gameId } = req.params;
+  const { id, role } = req.user;
 
   try {
+    const gameResult = await sql.query(`SELECT * FROM games WHERE id = $1`, [
+      gameId,
+    ]);
+
+    if (gameResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    const game = gameResult.rows[0];
+
+    if (id !== game.player1_id && id !== game.player2_id && role !== "admin")
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: You do not have permission to view this game.",
+      });
+
     const result = await sql.query(
       `
       SELECT 
@@ -212,6 +263,12 @@ export const getRounds = async (req, res) => {
       `,
       [gameId]
     );
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Rounds for this game not found" });
+    }
+
     return res.status(200).json(result.rows);
   } catch (err) {
     console.error("getRounds error:", err);
@@ -224,9 +281,45 @@ export const getRounds = async (req, res) => {
 export const submitAnswer = async (req, res) => {
   const { roundId, gameId } = req.params;
   const { selected_option_id, time_taken } = req.body;
+  const { role } = req.user;
   const player_id = req.user.id;
-
+  if (role !== "player" && role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to submit answers",
+    });
+  }
+  if (!selected_option_id || !time_taken)
+    return res.status(400).json({
+      success: false,
+      message: "Answer details required",
+    });
   try {
+    const gameResult = await sql.query(
+      `SELECT * 
+      FROM games g 
+      JOIN rounds r ON g.id = r.game_id  
+      WHERE g.id = $1 
+        AND r.id = $2 
+        AND(
+        $3 IN (g.player1_id, g.player2_id)
+        OR $4 = true
+        ) 
+        AND (
+          g.game_status = 'active' 
+          OR (g.game_status = 'waiting' AND g.player2_id IS NULL AND g.player1_id = $3)
+        );
+      `,
+      [gameId, roundId, player_id, role === "admin"]
+    );
+
+    if (gameResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found or you dont have access to it",
+      });
+    }
+
     await sql.query("BEGIN");
 
     // check if already answered
@@ -288,6 +381,18 @@ export const submitAnswer = async (req, res) => {
 export const submitResult = async (req, res) => {
   const { winnerId } = req.body;
   const { gameId } = req.params;
+  const { id, role } = req.user;
+  if (role !== "player" && role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to submit game",
+    });
+  }
+  if (!winnerId)
+    return res.status(400).json({
+      success: false,
+      message: "game details required",
+    });
   try {
     await sql.query("BEGIN");
 
@@ -304,6 +409,14 @@ export const submitResult = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Game not found" });
+    }
+
+    if (id !== game.player1_id && id !== game.player2_id && role !== "admin") {
+      await sql.query("ROLLBACK");
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: You do not have permission to view this game.",
+      });
     }
 
     if (game.winner_id !== null) {
