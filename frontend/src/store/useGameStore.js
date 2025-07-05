@@ -23,13 +23,12 @@ export const useGameStore = create((set, get) => ({
   searching: false,
   game: {
     id: 0,
-    me: {},
-    opponent: null,
+    player1: null,
+    player2: null,
     winner: null,
     status: "",
     created_at: "",
     ended_at: "",
-    rounds: [],
   },
   rounds: [],
 
@@ -53,12 +52,6 @@ export const useGameStore = create((set, get) => ({
       const {
         data: { players, game },
       } = await axiosInstance.get(`/${gameId}`);
-
-      const myId = Number(JSON.parse(localStorage.getItem("user")).id);
-
-      const me = players.find((p) => p.id === myId);
-      const opponent = players.find((p) => p.id !== myId);
-
       set({
         game: {
           id: game.id,
@@ -66,8 +59,8 @@ export const useGameStore = create((set, get) => ({
           created_at: game.created_at,
           ended_at: game.ended_at,
           winner: game.winner,
-          me,
-          opponent,
+          player1: players[0],
+          player2: players[1],
         },
       });
     } catch (err) {
@@ -119,13 +112,14 @@ export const useGameStore = create((set, get) => ({
           status: game.game_status,
           created_at: game.created_at,
           ended_at: game.ended_at,
+          winner: game.winner,
+          player1: players[0],
+          player2: players[1],
         },
       });
-      const myId = Number(JSON.parse(localStorage.getItem("user")).id);
 
-      const me = players.find((p) => p.id === myId);
-      const opponent = players.find((p) => p.id !== myId);
-      set({ game: { me, opponent } });
+      const myId = Number(JSON.parse(localStorage.getItem("user")).id);
+      set({ game: { player1: players[0], player2: players[1] } });
 
       if (isFirstPlayer) {
         navigate(`/game/${game.id}/category`);

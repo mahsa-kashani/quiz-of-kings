@@ -434,7 +434,7 @@ INSERT INTO users (username, email, pass, user_role) VALUES
   ('ali123', 'ali@example.com', 'securepass1', 'player'),
   ('sara456', 'sara@example.com', 'securepass2', 'player'),
   ('admin1', 'admin@example.com', 'adminpass', 'admin'),
-  ('mahsa', 'mahsa12.kashani@gmail.com', '$2b$10$cxJLILUav/1tvxOD8WnyhOPAydJ6Swx6PupxCYbKb2pOouQRrmu.e', 'player');
+  ('mahsa', 'mahsa12.kashani@gmail.com', '$2b$10$cxJLILUav/1tvxOD8WnyhOPAydJ6Swx6PupxCYbKb2pOouQRrmu.e', 'player'),
   ('ali', 'ali123@gmail.com', '$2b$10$Fu0P0Gbk63jdKUgXbWHDi.mMFuCp4CzB3Si7DNv4DHSkId5ayX5Nq', 'player');
 
 INSERT INTO categories (category_name) VALUES
@@ -452,9 +452,9 @@ INSERT INTO options (option_text) VALUES
   ('1918'),
   ('1965');
 
-INSERT INTO questions (question_text, difficulty, correct_option_id, category_id, author_id) VALUES
-  ('Who developed the theory of relativity?', 'medium', 1, 1, 1),
-  ('When did World War II end?', 'medium', 5, 2, 2);
+INSERT INTO questions (question_text, difficulty, correct_option_id, category_id, author_id, approval_status) VALUES
+  ('Who developed the theory of relativity?', 'medium', 1, 1, 1,'approved'),
+  ('When did World War II end?', 'medium', 5, 2, 2,'approved');
 
 INSERT INTO question_option (question_id, option_id) VALUES
   (1, 1), (1, 2), (1, 3), (1, 4),
