@@ -90,12 +90,12 @@ CREATE TABLE IF NOT EXISTS leaderboard (
 -- Optional bonus table for chat system
 CREATE TABLE IF NOT EXISTS messages (
   id SERIAL PRIMARY KEY,
+  game_id INT REFERENCES games(id) ON DELETE CASCADE,
   sender_id INT REFERENCES users(id) ON DELETE SET NULL,
   receiver_id INT REFERENCES users(id) ON DELETE SET NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   is_edited BOOLEAN DEFAULT FALSE,
-  is_deleted BOOLEAN DEFAULT FALSE,
   reply_to_id INT REFERENCES messages(id) ON DELETE SET NULL
 );
 
