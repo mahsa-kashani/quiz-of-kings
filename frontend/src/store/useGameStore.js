@@ -44,7 +44,6 @@ export const useGameStore = create((set, get) => ({
         : r
     );
     set({ rounds: updated });
-    console.log(updated);
   },
   fetchGame: async (gameId) => {
     set({ loading: true });
@@ -100,6 +99,32 @@ export const useGameStore = create((set, get) => ({
     }
   },
 
+  sendResult: async (gameId, winnerId) => {
+    const myId = Number(JSON.parse(localStorage.getItem("user")).id);
+    try {
+      const {
+        data: { game_status, ended_at, winner_id },
+      } = await axiosInstance.post(`/${gameId}/result`, winnerId);
+      set((state) => ({
+        game: {
+          ...state.game,
+          winner: winner_id,
+          ended_at,
+          status: game_status,
+        },
+      }));
+
+      if (winner_id === myId) toast.success("You win!");
+      else if (!winnerId) toast("Game tied");
+      else toast.error("You lose!");
+    } catch (err) {
+      console.log(err);
+      const message =
+        err.response?.data?.message || "Failed to save game results";
+      toast.error(message);
+    }
+  },
+
   findOpponentAndStartGame: async (navigate) => {
     set({ searching: true });
     try {
@@ -117,8 +142,6 @@ export const useGameStore = create((set, get) => ({
           player2: players[1],
         },
       });
-
-      const myId = Number(JSON.parse(localStorage.getItem("user")).id);
       set({ game: { player1: players[0], player2: players[1] } });
 
       if (isFirstPlayer) {

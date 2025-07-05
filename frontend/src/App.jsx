@@ -16,7 +16,7 @@ import AnswerQuestionPage from "./Pages/AnswerQuestionPage";
 function App() {
   return (
     <div
-      className="min-h-screen bg-base-200 transition-colors duration-300"
+      className="min-h-screen bg-base-200 transition-colors duration-300 "
       data-theme="forest"
     >
       <Routes>

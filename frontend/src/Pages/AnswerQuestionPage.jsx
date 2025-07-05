@@ -7,7 +7,6 @@ export default function AnswerQuestionPage() {
   const { gameId, roundId } = useParams();
   const navigate = useNavigate();
   const { rounds, fetchRounds, sendAnswers, loading, error } = useGameStore();
-  const myId = Number(JSON.parse(localStorage.getItem("user")).id);
 
   useEffect(() => {
     fetchRounds(gameId);
@@ -26,7 +25,6 @@ export default function AnswerQuestionPage() {
     const endTime = Date.now();
     const timeTaken = endTime - startTime;
     const myAnswer = {
-      player_id: myId,
       selected_option_id: optionId,
       time_taken: timeTaken / 1000,
     };

@@ -1,18 +1,44 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "../store/useGameStore";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { MessageSquare, Sword } from "lucide-react";
+import {
+  MessageSquare,
+  Sword,
+  Trophy,
+  Handshake,
+  Skull,
+  CheckCircle,
+  XCircle,
+  Clock,
+} from "lucide-react";
 import BackToPage from "../components/BackToPage";
 
 export default function GamePage() {
   const { gameId } = useParams();
   const navigate = useNavigate();
-  const { game, rounds, fetchGame, fetchRounds, loading, error } =
+  const { game, rounds, fetchGame, fetchRounds, loading, error, sendResult } =
     useGameStore();
   const [selectedTab, setSelectedTab] = useState("match");
+  const [animatingTab, setAnimatingTab] = useState("match");
   const myId = Number(JSON.parse(localStorage.getItem("user")).id);
 
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  const calculateWinner = () => {
+    const myCorrect = rounds.filter((r) => {
+      const answer = r.answers.find((a) => a.player_id === myId);
+      return answer?.selected_option === r.question.correct_option_id;
+    }).length;
+
+    const opponentCorrect = rounds.filter((r) => {
+      const answer = r.answers.find((a) => a.player_id === opponent?.id);
+      return answer?.selected_option === r.question.correct_option_id;
+    }).length;
+
+    if (myCorrect > opponentCorrect) return myId;
+    else if (opponentCorrect > myCorrect) return opponent?.id;
+    else return null; // draw
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -22,6 +48,15 @@ export default function GamePage() {
     };
     fetchAll();
   }, [gameId]);
+
+  useEffect(() => {
+    if (!dataLoaded) return;
+    if (rounds.length === 4 && !rounds[rounds.length - 1].currentTurn) {
+      const winnerId = calculateWinner();
+
+      sendResult(gameId, winnerId);
+    }
+  }, [rounds]);
 
   if (!dataLoaded) {
     return (
@@ -49,9 +84,17 @@ export default function GamePage() {
   const isMyTurn =
     (isStarter && !lastRound?.currentTurn) || lastRound?.currentTurn === myId;
 
+  const handleTabChange = (tab) => {
+    setAnimatingTab(""); // trigger re-render for animation
+    setTimeout(() => {
+      setSelectedTab(tab);
+      setAnimatingTab(tab);
+    }, 10); // delay required to allow class transition
+  };
+
   const handleStartNewRound = () => {
     // Check if round count < 4
-    if (rounds.length >= 4) return;
+    if (rounds.length >= 4 && !lastRound.currentTurn) return;
 
     if (rounds.length === 0 || !lastRound.currentTurn) {
       navigate(`/game/${gameId}/category`);
@@ -107,12 +150,17 @@ export default function GamePage() {
         ))}
       </div>
 
-      <div className="tabs tabs-boxed justify-center">
+      <div className="tabs tabs-boxed justify-center gap-4">
         {["match", "chat"].map((tab) => (
           <button
             key={tab}
-            className={`tab ${selectedTab === tab ? "tab-active" : ""}`}
-            onClick={() => setSelectedTab(tab)}
+            className={`tab transition-all duration-300 ease-in-out rounded-lg
+  ${
+    selectedTab === tab
+      ? "tab-active bg-primary text-primary-content shadow-md"
+      : "hover:bg-primary/10 hover:text-primary bg-base-100 text-base-content"
+  }`}
+            onClick={() => handleTabChange(tab)}
           >
             {tab === "match" ? (
               <Sword className="w-4 h-4 mr-1" />
@@ -125,39 +173,62 @@ export default function GamePage() {
       </div>
 
       {selectedTab === "match" ? (
-        <div className="space-y-4">
+        <div
+          className={`space-y-6 transition-all duration-300 ease-out ${
+            animatingTab === "match"
+              ? "opacity-100 "
+              : "opacity-0 pointer-events-none "
+          }`}
+        >
           {rounds.length ? (
             rounds.map((r) => (
               <div
                 key={r.id}
                 className="grid grid-cols-3 items-center text-sm bg-base-100 p-4 rounded-lg shadow cursor-pointer hover:bg-base-300"
               >
-                <div className="text-center">
+                <div className="flex justify-center items-center">
                   {(() => {
                     const a = r.answers.find((a) => a.player_id === myId);
-                    return a
-                      ? a.selected_option_id === r.question.correct_option_id
-                        ? "✅"
-                        : "❌"
-                      : "-";
+                    if (!a)
+                      return <Clock className="w-5 h-5 text-base-content/50" />;
+                    return a.selected_option ===
+                      r.question.correct_option_id ? (
+                      <CheckCircle className="w-5 h-5 text-success" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-error" />
+                    );
                   })()}
                 </div>
 
                 <div className="text-center font-semibold text-base-content">
                   {r.category}
                 </div>
-                <div className="text-center">
+
+                <div className="flex justify-center items-center">
                   {(() => {
                     const a = r.answers.find(
                       (a) => a.player_id === opponent?.id
                     );
-                    return opponent
-                      ? a && (isStarter || r.currentTurn !== myId)
-                        ? a.selected_option_id === r.question.correct_option_id
-                          ? "✅"
-                          : "❌"
-                        : "-"
-                      : "Waiting...";
+                    if (!opponent)
+                      return (
+                        <span className="text-xs text-base-content/60">
+                          Searching...
+                        </span>
+                      );
+                    if (!a)
+                      return <Clock className="w-5 h-5 text-base-content/50" />;
+                    if (
+                      (isStarter && !r.currentTurn) ||
+                      r.currentTurn !== myId
+                    ) {
+                      return a.selected_option ===
+                        r.question.correct_option_id ? (
+                        <CheckCircle className="w-5 h-5 text-success" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-error" />
+                      );
+                    }
+                    return <span className="text-base-content/40">-</span>;
                   })()}
                 </div>
               </div>
@@ -166,7 +237,7 @@ export default function GamePage() {
             <p className="text-center text-base-content/60">No rounds yet.</p>
           )}
 
-          {rounds.length < 4 ? (
+          {rounds.length < 4 || lastRound.currentTurn ? (
             isMyTurn ? (
               <div className="text-center">
                 <button
@@ -182,13 +253,46 @@ export default function GamePage() {
               </p>
             )
           ) : (
-            <p className="text-center text-base-content/60 mt-4">
-              Game completed.
-            </p>
+            <div className="text-center text-base-content/60 space-y-3">
+              <p className="text-lg">Game completed.</p>
+              {(() => {
+                const winnerId = calculateWinner();
+                const isWin = winnerId === myId;
+                const isLose = winnerId === opponent?.id;
+
+                const message = isWin
+                  ? "You won"
+                  : isLose
+                  ? `${opponent?.username} won`
+                  : "It's a draw";
+
+                const Icon = isWin ? Trophy : isLose ? Skull : Handshake;
+                const colorClass = isWin
+                  ? "text-success"
+                  : isLose
+                  ? "text-error"
+                  : "text-warning";
+
+                return (
+                  <p
+                    className={`font-semibold flex items-center justify-center gap-2 ${colorClass}`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    {message}
+                  </p>
+                );
+              })()}
+            </div>
           )}
         </div>
       ) : (
-        <div className="bg-base-100 p-6 rounded-xl shadow text-center text-base-content/60">
+        <div
+          className={`transition-all duration-300 ease-out ${
+            animatingTab === "chat"
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none "
+          } bg-base-100 p-6 rounded-xl shadow text-center text-base-content/60 `}
+        >
           Chat functionality coming soon...
         </div>
       )}

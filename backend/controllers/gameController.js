@@ -176,7 +176,7 @@ export const getRounds = async (req, res) => {
       SELECT 
         r.id,
         r.round_number,
-        c.category_name,
+        c.category_name AS category,
         to_jsonb(q) AS question,
         (
             SELECT json_agg(json_build_object('id', o.id, 'option_text', o.option_text))
