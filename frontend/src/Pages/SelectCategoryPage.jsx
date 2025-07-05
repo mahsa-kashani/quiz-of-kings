@@ -8,19 +8,23 @@ export default function SelectCategoryPage() {
   const { gameId } = useParams();
   const navigate = useNavigate();
   const { categories, fetchCategories } = useQuestionStore();
-  const { rounds, loading, submitCategoryAndStartRound } = useGameStore();
+  const { loading, submitCategoryAndStartRound, fetchRounds } = useGameStore();
+  const get = useGameStore.getState;
 
   const [usedCategories, setUsedCategories] = useState([]);
 
   useEffect(() => {
-    fetchCategories();
-
-    // extract used categories from current game rounds
-    if (rounds) {
-      const used = rounds.map((r) => r.category).filter(Boolean);
-      setUsedCategories(used);
+    async function fetchData(gameId) {
+      await fetchCategories();
+      await fetchRounds(gameId);
+      const updatedRounds = get().rounds;
+      if (updatedRounds.length > 0) {
+        const used = updatedRounds.map((r) => r.category).filter(Boolean);
+        setUsedCategories(used);
+      }
     }
-  }, [rounds]);
+    fetchData(gameId);
+  }, []);
 
   const availableCategories = categories.filter(
     (c) => !usedCategories.includes(c.category_name)

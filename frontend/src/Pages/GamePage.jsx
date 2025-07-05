@@ -126,7 +126,7 @@ export default function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-base-200 p-6 space-y-6">
+    <div className="min-h-screen bg-base-200 p-6 space-y-5">
       <BackToPage page="dashboard" />
 
       <div className="text-center">
@@ -175,7 +175,7 @@ export default function GamePage() {
 
       {selectedTab === "match" ? (
         <div
-          className={`space-y-6 transition-all duration-300 ease-out ${
+          className={`space-y-3 transition-all duration-300 ease-out ${
             animatingTab === "match"
               ? "opacity-100 "
               : "opacity-0 pointer-events-none "
@@ -273,9 +273,9 @@ export default function GamePage() {
 
                 return (
                   <p
-                    className={`font-semibold flex items-center justify-center gap-2 ${colorClass}`}
+                    className={`font-semibold flex items-center text-4xl justify-center gap-2 ${colorClass}`}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-9 h-9" />
                     {message}
                   </p>
                 );

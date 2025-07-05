@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { data } from "react-router-dom";
 
 const BASE_URL = "http://localhost:3000/api/game";
 
@@ -103,21 +104,23 @@ export const useGameStore = create((set, get) => ({
     const myId = Number(JSON.parse(localStorage.getItem("user")).id);
     try {
       const {
-        data: { game_status, ended_at, winner_id },
+        data: { game_status, ended_at, winner_id, success, message },
       } = await axiosInstance.post(`/${gameId}/result`, { winnerId });
-      console.log(ended_at, game_status);
-      set((state) => ({
-        game: {
-          ...state.game,
-          winner: winner_id,
-          ended_at,
-          status: game_status,
-        },
-      }));
 
-      if (winner_id === myId) toast.success("You win!");
-      else if (!winnerId) toast("Game tied");
-      else toast.error("You lose!");
+      if (success && !message) {
+        set((state) => ({
+          game: {
+            ...state.game,
+            winner: winner_id,
+            ended_at,
+            status: game_status,
+          },
+        }));
+
+        if (winner_id === myId) toast.success("You win!");
+        else if (!winnerId) toast("Game tied");
+        else toast.error("You lose!");
+      }
     } catch (err) {
       console.log(err);
       const message =
@@ -143,7 +146,6 @@ export const useGameStore = create((set, get) => ({
           player2: players[1],
         },
       });
-      set({ game: { player1: players[0], player2: players[1] } });
 
       if (isFirstPlayer) {
         navigate(`/game/${game.id}/category`);

@@ -288,7 +288,6 @@ export const submitAnswer = async (req, res) => {
 export const submitResult = async (req, res) => {
   const { winnerId } = req.body;
   const { gameId } = req.params;
-  console.log(winnerId);
   try {
     await sql.query("BEGIN");
 

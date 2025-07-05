@@ -277,88 +277,74 @@ ORDER BY win_loss_ratio DESC;
 -- TRIGGERS
 -- ======================
 
-CREATE OR REPLACE FUNCTION update_score_with_accuracy_and_time()
+CREATE OR REPLACE FUNCTION update_scores_xp()
 RETURNS TRIGGER AS $$
 DECLARE
+  r RECORD;
   correct_option INT;
   is_correct BOOLEAN;
-  base_score INT := 0;
+  base_score INT;
   curr_correct INT;
   new_correct INT;
   new_total INT;
   new_accuracy NUMERIC(5,2);
-BEGIN
-  -- checking correctenss of answer
-  SELECT q.correct_option_id INTO correct_option
-  FROM rounds r
-  JOIN questions q ON r.question_id = q.id
-  WHERE r.id = NEW.round_id;
-
-  is_correct := (NEW.selected_option_id = correct_option);
-
-  --get current values from table
-  SELECT correct_answers, total_answers
-  INTO curr_correct, new_total
-  FROM user_statistics
-  WHERE user_id = NEW.player_id;
-
-  --update values
-  new_total := new_total + 1;
-  IF is_correct THEN
-    base_score := base_score + 10;
-    new_correct := curr_correct + 1;
-  ELSE
-    base_score := base_score - 5;
-    new_correct := curr_correct;
-  END IF;
-
-   -- quickness score
-  IF is_correct THEN
-    IF NEW.time_taken <= INTERVAL '5 seconds' THEN
-      base_score := base_score + 10;
-    ELSIF NEW.time_taken <= INTERVAL '15 seconds' THEN
-      base_score := base_score + 5;
-    END IF;
-  END IF;
-
-
-  new_accuracy := LEAST(ROUND((new_correct::NUMERIC / new_total) * 100.0, 2), 100);
-
-
-  -- updating all
-  UPDATE user_statistics
-  SET
-    correct_answers = new_correct,
-    total_answers = new_total,
-    average_accuracy = new_accuracy
-  WHERE user_id = NEW.player_id;
-
-  -- incrementing total score
-  UPDATE leaderboard
-  SET score = score + base_score
-  WHERE user_id = NEW.player_id;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_update_score_with_accuracy_and_time ON round_answers;
-
-CREATE TRIGGER trg_update_score_with_accuracy_and_time
-AFTER INSERT ON round_answers
-FOR EACH ROW
-EXECUTE FUNCTION update_score_with_accuracy_and_time();
-
-
-
-CREATE OR REPLACE FUNCTION update_win_loss_scores()
-RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.game_status = 'completed' THEN
     -- games played
     UPDATE user_statistics
     SET games_played = games_played + 1
     WHERE user_id IN (NEW.player1_id, NEW.player2_id);
+
+    -- calculate scores per round answer
+    FOR r IN
+      SELECT ra.*, q.correct_option_id, r2.question_id
+      FROM round_answers ra
+      JOIN rounds r2 ON ra.round_id = r2.id
+      JOIN questions q ON q.id = r2.question_id
+      WHERE r2.game_id = NEW.id
+    LOOP
+      -- check correctness
+      is_correct := (r.selected_option_id = r.correct_option_id);
+      base_score := 0;
+
+      -- get current values
+      SELECT correct_answers, total_answers
+      INTO curr_correct, new_total
+      FROM user_statistics
+      WHERE user_id = r.player_id;
+
+      -- correctness scores
+      new_total := new_total + 1;
+      IF is_correct THEN
+        base_score := base_score + 10;
+        new_correct := curr_correct + 1;
+      ELSE
+        base_score := base_score - 5;
+        new_correct := curr_correct;
+      END IF;
+
+      -- quickness scores
+      IF is_correct THEN
+        IF r.time_taken <= INTERVAL '5 seconds' THEN
+          base_score := base_score + 10;
+        ELSIF r.time_taken <= INTERVAL '15 seconds' THEN
+          base_score := base_score + 5;
+        END IF;
+      END IF;
+
+      new_accuracy := LEAST(ROUND((new_correct::NUMERIC / new_total) * 100.0, 2), 100);
+
+      -- update statistics and leaderboard
+      UPDATE user_statistics
+      SET correct_answers = new_correct,
+          total_answers = new_total,
+          average_accuracy = new_accuracy
+      WHERE user_id = r.player_id;
+
+      UPDATE leaderboard
+      SET score = score + base_score
+      WHERE user_id = r.player_id;
+    END LOOP;
 
     -- score for winner
     IF NEW.winner_id IS NOT NULL THEN
@@ -369,9 +355,8 @@ BEGIN
       UPDATE leaderboard
       SET score = score + 100
       WHERE user_id = NEW.winner_id;
-    END IF;
-    -- score for tie
-    IF NEW.winner_id IS NULL THEN
+    ELSE
+      -- score for tie (winner_id is null)
       UPDATE user_statistics
       SET games_tied = games_tied + 1, xp = xp + 30
       WHERE user_id IN (NEW.player1_id, NEW.player2_id);
@@ -381,13 +366,13 @@ BEGIN
       WHERE user_id IN (NEW.player1_id, NEW.player2_id);
     END IF;
 
-    -- score for loser
-    IF NEW.player1_id IS NOT NULL AND NEW.winner_id IS DISTINCT FROM NEW.player1_id THEN
+    -- loser XP bonus + leaderboard score update
+    IF NEW.player1_id IS DISTINCT FROM NEW.winner_id AND NEW.winner_id IS NOT NULL THEN
       UPDATE user_statistics SET xp = xp + 10 WHERE user_id = NEW.player1_id;
       UPDATE leaderboard SET score = score + 20 WHERE user_id = NEW.player1_id;
     END IF;
 
-    IF NEW.player2_id IS NOT NULL AND NEW.winner_id IS DISTINCT FROM NEW.player2_id THEN
+    IF NEW.player2_id IS DISTINCT FROM NEW.winner_id AND NEW.winner_id IS NOT NULL THEN
       UPDATE user_statistics SET xp = xp + 10 WHERE user_id = NEW.player2_id;
       UPDATE leaderboard SET score = score + 20 WHERE user_id = NEW.player2_id;
     END IF;
@@ -397,13 +382,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_update_win_loss_scores ON games;
 
-CREATE TRIGGER trg_update_win_loss_scores
+DROP TRIGGER IF EXISTS trg_update_scores_xp ON games;
+
+CREATE TRIGGER trg_update_scores_xp
 AFTER UPDATE OF game_status ON games
 FOR EACH ROW
-EXECUTE FUNCTION update_win_loss_scores();
-
+EXECUTE FUNCTION update_scores_xp();
 
 
 
@@ -440,7 +425,11 @@ INSERT INTO users (username, email, pass, user_role) VALUES
 INSERT INTO categories (category_name) VALUES
   ('Science'),
   ('History'),
-  ('Sports');
+  ('Sports'),
+  ('Technology'),
+  ('Literature'),
+  ('Geography'),
+  ('Mathematics');
 
 INSERT INTO options (option_text) VALUES
   ('Einstein'),
@@ -450,15 +439,42 @@ INSERT INTO options (option_text) VALUES
   ('1945'),
   ('1939'),
   ('1918'),
-  ('1965');
+  ('1965'),
+    ('Alan Turing'),       -- id = 9
+  ('Bill Gates'),        -- id = 10
+  ('Steve Jobs'),        -- id = 11
+  ('Tim Berners-Lee'),   -- id = 12
+
+  ('Shakespeare'),       -- id = 13
+  ('Hemingway'),         -- id = 14
+  ('Tolstoy'),           -- id = 15
+  ('Dante'),             -- id = 16
+
+  ('Mount Everest'),     -- id = 17
+  ('K2'),                -- id = 18
+  ('Kilimanjaro'),       -- id = 19
+  ('Alps'),              -- id = 20
+
+  ('Pi'),                -- id = 21
+  ('Euler''s Number'),     -- id = 22
+  ('Golden Ratio'),      -- id = 23
+  ('Imaginary Unit');  
 
 INSERT INTO questions (question_text, difficulty, correct_option_id, category_id, author_id, approval_status) VALUES
   ('Who developed the theory of relativity?', 'medium', 1, 1, 1,'approved'),
-  ('When did World War II end?', 'medium', 5, 2, 2,'approved');
+  ('When did World War II end?', 'medium', 5, 2, 2,'approved'),
+  ('Who is considered the father of modern computing?', 'hard', 9, 4, 1, 'approved'),
+  ('Who wrote the tragedy "Hamlet"?', 'easy', 13, 5, 2, 'approved'),
+  ('What is the tallest mountain in the world?', 'easy', 17, 6, 1, 'approved'),
+  ('Which constant is approximately 3.14159?', 'medium', 21, 7, 2, 'approved');
 
 INSERT INTO question_option (question_id, option_id) VALUES
   (1, 1), (1, 2), (1, 3), (1, 4),
-  (2, 5), (2, 6), (2, 7), (2, 8);
+  (2, 5), (2, 6), (2, 7), (2, 8),
+  (3, 9), (3, 10), (3, 11), (3, 12),
+  (4, 13), (4, 14), (4, 15), (4, 16),
+  (5, 17), (5, 18), (5, 19), (5, 20),
+  (6, 21), (6, 22), (6, 23), (6, 24);
 
 INSERT INTO games (player1_id, player2_id, winner_id, game_status, ended_at) VALUES
   (1, 2, 1, 'active', CURRENT_DATE - INTERVAL '2 days'),

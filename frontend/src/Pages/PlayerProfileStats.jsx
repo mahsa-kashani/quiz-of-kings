@@ -83,8 +83,7 @@ export default function PlayerProfileStats() {
               <div
                 className="radial-progress text-error"
                 style={{
-                  "--value":
-                    (userStats.gamesLost / userStats.games_played) * 100 || 0,
+                  "--value": (gamesLost / userStats.games_played) * 100 || 0,
                 }}
               >
                 Losses
