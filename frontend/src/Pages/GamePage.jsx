@@ -12,15 +12,18 @@ import {
   Clock,
 } from "lucide-react";
 import BackToPage from "../components/BackToPage";
+import { useMessageStore } from "../store/useMessageStore";
+import ChatTab from "../components/ChatTab";
 
 export default function GamePage() {
   const { gameId } = useParams();
   const navigate = useNavigate();
   const { game, rounds, fetchGame, fetchRounds, loading, error, sendResult } =
     useGameStore();
-  const [selectedTab, setSelectedTab] = useState("match");
   const [animatingTab, setAnimatingTab] = useState("match");
   const myId = Number(JSON.parse(localStorage.getItem("user")).id);
+
+  const { unreadCount, selectedTab, setSelectedTab } = useMessageStore();
 
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -155,20 +158,29 @@ export default function GamePage() {
         {["match", "chat"].map((tab) => (
           <button
             key={tab}
-            className={`tab transition-all duration-300 ease-in-out rounded-lg
-  ${
-    selectedTab === tab
-      ? "tab-active bg-primary text-primary-content shadow-md"
-      : "hover:bg-primary/10 hover:text-primary bg-base-100 text-base-content"
-  }`}
+            className={`tab transition-all duration-300 ease-in-out rounded-lg ${
+              selectedTab === tab
+                ? "tab-active bg-primary text-primary-content shadow-md"
+                : "hover:bg-primary/10 hover:text-primary bg-base-100 text-base-content"
+            }`}
             onClick={() => handleTabChange(tab)}
           >
             {tab === "match" ? (
-              <Sword className="w-4 h-4 mr-1" />
+              <>
+                <Sword className="w-4 h-4 mr-1" />
+                Match
+              </>
             ) : (
-              <MessageSquare className="w-4 h-4 mr-1" />
+              <div className="relative flex items-center gap-1">
+                <MessageSquare className="w-4 h-4" />
+                <span>Chat</span>
+                {unreadCount > 0 && selectedTab !== "chat" && (
+                  <span className="absolute -top-2 -right-3 bg-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full animate-bounce">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
             )}
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
@@ -291,7 +303,7 @@ export default function GamePage() {
               : "opacity-0 pointer-events-none "
           } bg-base-100 p-6 rounded-xl shadow text-center text-base-content/60 `}
         >
-          Chat functionality coming soon...
+          <ChatTab />
         </div>
       )}
     </div>

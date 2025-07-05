@@ -89,7 +89,7 @@ export const createRound = async (req, res) => {
       .json({ success: false, message: "Only players can play a round" });
   }
   try {
-    const checkGame = await sql.query(`SELECT * FROM games WHERE id=$1`, [
+    let checkGame = await sql.query(`SELECT * FROM games WHERE id=$1`, [
       gameId,
     ]);
     if (checkGame.rows.length === 0)
@@ -97,6 +97,7 @@ export const createRound = async (req, res) => {
         success: false,
         message: "No games found",
       });
+    checkGame = checkGame.rows[0];
     if (
       id !== checkGame.player1_id &&
       id !== checkGame.player2_id &&
@@ -263,11 +264,6 @@ export const getRounds = async (req, res) => {
       `,
       [gameId]
     );
-    if (result.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Rounds for this game not found" });
-    }
 
     return res.status(200).json(result.rows);
   } catch (err) {
