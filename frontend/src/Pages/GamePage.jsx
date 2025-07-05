@@ -14,6 +14,7 @@ import {
 import BackToPage from "../components/BackToPage";
 import { useMessageStore } from "../store/useMessageStore";
 import ChatTab from "../components/ChatTab";
+import toast from "react-hot-toast";
 
 export default function GamePage() {
   const { gameId } = useParams();
@@ -136,7 +137,7 @@ export default function GamePage() {
         <h1 className="text-xl font-bold text-primary">Game #{gameId}</h1>
       </div>
 
-      <div className="flex justify-between bg-base-100 p-4 rounded-xl shadow">
+      <div className="flex justify-between bg-base-100 p-4 rounded-xl shadow sticky top-0 z-20">
         {[me, opponent || {}].map((player, idx) => (
           <div key={idx} className="text-center w-1/2">
             <h2 className="font-semibold text-base-content/80">
@@ -155,34 +156,43 @@ export default function GamePage() {
       </div>
 
       <div className="tabs tabs-boxed justify-center gap-4">
-        {["match", "chat"].map((tab) => (
-          <button
-            key={tab}
-            className={`tab transition-all duration-300 ease-in-out rounded-lg ${
-              selectedTab === tab
-                ? "tab-active bg-primary text-primary-content shadow-md"
-                : "hover:bg-primary/10 hover:text-primary bg-base-100 text-base-content"
-            }`}
-            onClick={() => handleTabChange(tab)}
-          >
-            {tab === "match" ? (
-              <>
-                <Sword className="w-4 h-4 mr-1" />
-                Match
-              </>
-            ) : (
-              <div className="relative flex items-center gap-1">
-                <MessageSquare className="w-4 h-4" />
-                <span>Chat</span>
-                {unreadCount > 0 && selectedTab !== "chat" && (
-                  <span className="absolute -top-2 -right-3 bg-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full animate-bounce">
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
-            )}
-          </button>
-        ))}
+        {["match", "chat"].map((tab) => {
+          const isDisabled = tab === "chat" && !opponent;
+          return (
+            <button
+              key={tab}
+              className={`tab transition-all duration-300 ease-in-out rounded-lg ${
+                selectedTab === tab
+                  ? "tab-active bg-primary text-primary-content shadow-md"
+                  : "hover:bg-primary/10 hover:text-primary bg-base-100 text-base-content"
+              }${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() => {
+                if (isDisabled) {
+                  toast.error("Chat is not available until an opponent joins.");
+                  return;
+                }
+                handleTabChange(tab);
+              }}
+            >
+              {tab === "match" ? (
+                <>
+                  <Sword className="w-4 h-4 mr-1" />
+                  Match
+                </>
+              ) : (
+                <div className="relative flex items-center gap-1">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Chat</span>
+                  {unreadCount > 0 && selectedTab !== "chat" && (
+                    <span className="absolute -top-2 -right-3 bg-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full animate-bounce">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {selectedTab === "match" ? (
@@ -303,7 +313,7 @@ export default function GamePage() {
               : "opacity-0 pointer-events-none "
           } bg-base-100 p-6 rounded-xl shadow text-center text-base-content/60 `}
         >
-          <ChatTab />
+          <ChatTab opponent={opponent} />
         </div>
       )}
     </div>

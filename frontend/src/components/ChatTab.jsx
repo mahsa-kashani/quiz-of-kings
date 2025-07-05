@@ -11,14 +11,17 @@ import { useMessageStore } from "../store/useMessageStore";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-const ChatTab = () => {
+const ChatTab = ({ opponent }) => {
   const { gameId } = useParams();
   const [input, setInput] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const messagesEndRef = useRef(null);
-  const myId = Number(JSON.parse(localStorage.getItem("user")).id);
-  const { messages, fetchMessages, loading, error } = useMessageStore();
+  const me = JSON.parse(localStorage.getItem("user"));
+  const myId = Number(me.id);
+
+  const { messages, fetchMessages, loading, error, sendMessage } =
+    useMessageStore();
 
   useEffect(() => {
     fetchMessages(gameId);
@@ -27,11 +30,6 @@ const ChatTab = () => {
   const handleSend = async () => {
     if (!input.trim()) return;
     try {
-      const url = `http://localhost:3000/api/game/${gameId}/messages`;
-      const payload = {
-        text: input,
-        reply_to: replyTo?.id || null,
-      };
       if (editingId) {
         await axios.put(`${url}/${editingId}`, payload, {
           headers: {
@@ -40,17 +38,12 @@ const ChatTab = () => {
         });
         toast.success("Message edited");
       } else {
-        await axios.post(url, payload, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        toast.success("Message sent");
+        sendMessage(gameId, input, opponent.id, replyTo?.id || null);
       }
       setInput("");
       setEditingId(null);
       setReplyTo(null);
-      fetchMessages();
+      fetchMessages(gameId);
     } catch (err) {
       console.error(err);
       toast.error("Failed to send message");
@@ -68,7 +61,7 @@ const ChatTab = () => {
         }
       );
       toast.success("Message deleted");
-      fetchMessages();
+      fetchMessages(gameId);
     } catch (err) {
       console.error(err);
       toast.error("Delete failed");
@@ -98,7 +91,7 @@ const ChatTab = () => {
   }
 
   return (
-    <div className="flex flex-col space-y-4 max-h-[65vh]">
+    <div className="flex flex-col space-y-4 overflow-y-auto grow min-h-[300px] px-4 max-w-5xl mx-auto w-full">
       {messages.length === 0 ? (
         <p className="text-center text-base-content/60">No messages yet.</p>
       ) : (
@@ -106,49 +99,60 @@ const ChatTab = () => {
           <div
             key={msg.id}
             className={`chat ${
-              msg.sender_id === myId ? "chat-end" : "chat-start"
+              msg.sender_id === myId ? "chat-start" : "chat-end"
             }`}
           >
-            <div className="chat-header text-sm font-semibold">
-              {msg.sender.username}
-            </div>
+            {(() => {
+              const repliedMsg = messages.find((m) => m.id === msg.reply_to_id);
+              if (!repliedMsg) return null;
 
-            {msg.reply_to && (
-              <div className="bg-base-200 p-2 rounded text-xs text-base-content/60">
-                <CornerDownRight className="w-5 h-5" />
-                {msg.reply_to.content.slice(0, 100)}
-              </div>
-            )}
-
-            <div className="chat-bubble bg-primary text-primary-content relative">
-              {msg.content}
-              {msg.sender_id === myId && (
-                <div className="absolute bottom-1 right-2 flex gap-2 text-xs">
-                  <button
-                    onClick={() => {
-                      setInput(msg.content);
-                      setEditingId(msg.id);
-                    }}
-                    className="hover:text-warning"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(msg.id)}
-                    className="hover:text-error"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+              return (
+                <div className="bg-base-200 p-2 rounded text-xs text-base-content/60">
+                  <CornerDownRight className="w-5 h-5 inline-block mr-1" />
+                  {repliedMsg.content.slice(0, 100)}
                 </div>
-              )}
-            </div>
+              );
+            })()}
 
-            <button
-              className="text-xs text-blue-400 hover:underline"
-              onClick={() => setReplyTo(msg)}
-            >
-              Reply
-            </button>
+            <div className="flex flex-col gap-2 max-w-full">
+              <div
+                className={`chat-bubble rounded-xl px-4 py-3 text-base leading-relaxed whitespace-pre-wrap w-fit text-left ${
+                  msg.sender_id === myId
+                    ? "bg-primary text-primary-content self-start"
+                    : "bg-base-300 text-base-content self-end"
+                }`}
+              >
+                {msg.content}
+              </div>
+
+              <div className="flex justify-start gap-4 items-center text-sm text-white/80">
+                {msg.sender_id === myId && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setInput(msg.content);
+                        setEditingId(msg.id);
+                      }}
+                      className="flex items-center gap-1 hover:text-yellow-300 transition"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(msg.id)}
+                      className="flex items-center gap-1 hover:text-red-300 transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+                <button
+                  className="flex items-center gap-1 hover:text-cyan-300 transition"
+                  onClick={() => setReplyTo(msg)}
+                >
+                  <CornerDownRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         ))
       )}

@@ -8,6 +8,7 @@ import authRoute from "./routes/authRoute.js";
 import dashboardRoute from "./routes/dashboardRoute.js";
 import questionRoute from "./routes/questionRoute.js";
 import gameRoute from "./routes/gameRoute.js";
+import messagesRoute from "./routes/messagesRoute.js";
 import { sql } from "./config/db.js";
 
 dotenv.config();
@@ -51,6 +52,7 @@ app.use(cors());
 app.use("/api/auth", authRoute);
 app.use("/api/dashboard", authenticateToken, dashboardRoute);
 app.use("/api/questions", authenticateToken, questionRoute);
+app.use("/api/messages", authenticateToken, messagesRoute);
 app.use("/api/game", authenticateToken, gameRoute);
 
 app.listen(PORT, () => {

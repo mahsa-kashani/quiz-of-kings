@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import axios from "axios";
+import toast from "react-hot-toast";
 
-const BASE_URL = "http://localhost:3000/api/game";
+const BASE_URL = "http://localhost:3000/api/messages";
 
 export const useMessageStore = create((set) => ({
   loading: false,
@@ -26,7 +27,7 @@ export const useMessageStore = create((set) => ({
   fetchMessages: async (gameId) => {
     set({ loading: true });
     try {
-      const { data } = await axios.get(`${BASE_URL}/${gameId}/messages`, {
+      const { data } = await axios.get(`${BASE_URL}/${gameId}/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -35,9 +36,27 @@ export const useMessageStore = create((set) => ({
     } catch (err) {
       console.log(err);
       const message = err.response?.data?.message || "Failed to fetch messages";
-      set({ game: {}, error: message });
+      set({ messages: [], error: message });
     } finally {
       set({ loading: false });
+    }
+  },
+  sendMessage: async (gameId, content, receiver_id, reply_to_id) => {
+    try {
+      await axios.post(
+        `${BASE_URL}/${gameId}/`,
+        { content, receiver_id, reply_to_id },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success("Message sent");
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Failed to fetch messages";
+      toast.error(message);
     }
   },
 }));

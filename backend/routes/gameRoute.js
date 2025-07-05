@@ -1,5 +1,4 @@
 import express from "express";
-import messagesRoute from "./messagesRoute.js";
 import {
   findOrCreateGame,
   createRound,
@@ -10,8 +9,6 @@ import {
 } from "../controllers/gameController.js";
 
 const router = express.Router();
-
-router.use("/:gameId/messages", messagesRoute);
 
 router.post("/find-or-create", findOrCreateGame);
 router.post("/:gameId/round", createRound);

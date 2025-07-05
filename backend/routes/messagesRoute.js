@@ -1,8 +1,9 @@
 import express from "express";
-import { getMessages } from "../controllers/messagesController.js";
+import { getMessages, addMessage } from "../controllers/messagesController.js";
 
-const router = express.Router({ mergeParams: true });
+const router = express.Router();
 
-router.get("/", getMessages);
+router.get("/:gameId/", getMessages);
+router.post("/:gameId/", addMessage);
 
 export default router;
