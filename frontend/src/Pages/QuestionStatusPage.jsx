@@ -13,85 +13,104 @@ export default function QuestionStatusPage() {
   return (
     <div className="min-h-screen px-6 py-10 bg-base-200">
       <BackToPage page="question" />
-      <h2 className="text-4xl font-bold text-center text-info mb-8">
+      <h2 className="text-4xl font-bold text-center text-info mb-12">
         My Question Status
       </h2>
 
       {loading ? (
-        <div className="min-h-screen flex items-center justify-center bg-base-200">
-          <span className="loading loading-spinner loading-lg text-primary"></span>
+        <div className="flex items-center justify-center min-h-[30vh]">
+          <span className="loading loading-spinner text-primary"></span>
         </div>
       ) : error ? (
-        <div className="min-h-screen flex flex-col items-center justify-center text-center bg-base-200 px-4">
-          <h2 className="text-2xl font-bold text-error mb-2">Error</h2>
-          <p className="text-base-content/70">{error}</p>
-          <Link to="/" className="mt-4 btn btn-outline btn-error">
-            Go Back Home
-          </Link>
+        <div className="text-center text-error">
+          <h2 className="text-2xl font-bold mb-2">Error</h2>
+          <p>{error}</p>
         </div>
       ) : userQuestions?.length === 0 ? (
-        <div className="flex justify-center items-center min-h-[30vh]">
-          <p className="text-center text-base-content/70 text-xl">
-            You haven’t submitted any questions yet.
-          </p>
+        <div className="text-center text-base-content/70 text-xl">
+          You haven’t submitted any questions yet.
         </div>
       ) : (
-        <div className="space-y-4">
-          {userQuestions?.map((q) => (
-            <div
-              key={q.id}
-              className="card border border-base-content/10 bg-base-100 shadow-sm"
-            >
-              <div className="card-body">
-                <h3 className="font-semibold text-lg text-info">
-                  {q.question_text}
-                </h3>
-                <ul className="list-disc ml-5 text-sm text-base-content/80">
-                  {q.options?.map((opt, index) => (
-                    <li key={index}>
-                      Option {String.fromCharCode(65 + index)}: {opt}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2">
-                  <span className="font-semibold">Correct Option:</span>{" "}
-                  <span className="text-base-content/80">
-                    {q.correct_option}
-                  </span>
-                </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {userQuestions.map((q) => {
+            const statusColor =
+              q.approval_status === "approved"
+                ? "success"
+                : q.approval_status === "rejected"
+                ? "error"
+                : "warning";
 
-                <p>
-                  <span className="font-semibold">Category:</span>{" "}
-                  {q.category_name}
-                </p>
-                <p>
-                  <span className="font-semibold">Difficulty:</span>{" "}
-                  {q.difficulty}
-                </p>
-                <p>
-                  <span className="font-semibold">Status:</span>{" "}
-                  <span
-                    className={
-                      q.approval_status === "approved"
-                        ? "text-success"
-                        : q.approval_status === "rejected"
-                        ? "text-error"
-                        : "text-warning"
-                    }
-                  >
-                    {q.approval_status.charAt(0).toUpperCase() +
-                      q.approval_status.slice(1)}
-                  </span>
-                </p>
-                {q.approval_status === "rejected" && q.rejection_reason && (
-                  <p className="text-sm text-error mt-1">
-                    <span className="font-semibold">Reason:</span>{" "}
-                    {q.rejection_reason}
-                  </p>
-                )}
+            const difficultyColor =
+              q.difficulty === "easy"
+                ? "text-success"
+                : q.difficulty === "hard"
+                ? "text-error"
+                : "text-warning";
+
+            const statusIcon =
+              q.approval_status === "approved"
+                ? "✔️"
+                : q.approval_status === "rejected"
+                ? "❌"
+                : "⏳";
+
+            return (
+              <div
+                key={q.id}
+                className="card bg-base-100 border border-base-300 shadow-xl hover:shadow-2xl transition-shadow"
+              >
+                <div className="card-body space-y-5">
+                  <h3 className="font-bold text-xl text-info">
+                    {q.question_text}
+                  </h3>
+
+                  <ul className="text-base space-y-2">
+                    {q.options.map((opt, idx) => {
+                      const isCorrect = q.correct_option === opt.id;
+                      return (
+                        <li
+                          key={idx}
+                          className={`pl-2 border-l-4 ${
+                            isCorrect
+                              ? "border-success font-semibold text-success"
+                              : "border-transparent"
+                          }`}
+                        >
+                          Option {String.fromCharCode(65 + idx)}:{" "}
+                          {opt.option_text}
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  <div className="text-base text-base-content/80 space-y-2">
+                    <p>
+                      <span className="font-semibold">Category:</span>{" "}
+                      {q.category_name}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Difficulty:</span>{" "}
+                      <span className={`${difficultyColor} capitalize`}>
+                        {q.difficulty}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="font-semibold">Status:</span>{" "}
+                      <span className={`badge text-${statusColor}`}>
+                        {statusIcon} {q.approval_status}
+                      </span>
+                    </p>
+                    {q.approval_status === "rejected" && q.rejection_reason && (
+                      <p className="text-error text-sm mt-1">
+                        <span className="font-semibold">Reason:</span>{" "}
+                        {q.rejection_reason}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

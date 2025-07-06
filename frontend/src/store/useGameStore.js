@@ -22,6 +22,8 @@ export const useGameStore = create((set, get) => ({
   loading: false,
   error: null,
   searching: false,
+  finding: false,
+  errorFinding: null,
   game: {
     id: 0,
     player1: null,
@@ -32,6 +34,22 @@ export const useGameStore = create((set, get) => ({
     ended_at: "",
   },
   rounds: [],
+  activeGames: [],
+
+  fetchActiveGames: async () => {
+    set({ finding: true });
+    try {
+      const { data } = await axiosInstance.get("/active");
+      set({ activeGames: data });
+    } catch (err) {
+      console.log(err);
+      const message =
+        err.response?.data?.message || "Failed to find active games";
+      set({ activeGames: [], errorFinding: message });
+    } finally {
+      set({ finding: false });
+    }
+  },
 
   updateRoundAfterAnswer: (roundId, myAnswer) => {
     const { rounds } = get();

@@ -8,10 +8,18 @@ import LogoHeader from "../LogoHeader";
 export default function PlayerDashboard() {
   const navigate = useNavigate();
   const { userStats, fetchUserStats, error, loading } = useDashboardStore();
-  const { findOpponentAndStartGame, searching } = useGameStore();
+  const {
+    findOpponentAndStartGame,
+    searching,
+    fetchActiveGames,
+    activeGames,
+    finding,
+    errorFinding,
+  } = useGameStore();
 
   useEffect(() => {
     fetchUserStats();
+    fetchActiveGames();
   }, []);
   if (loading) {
     return (
@@ -109,6 +117,60 @@ export default function PlayerDashboard() {
             </Link>
           </div>
         </div>
+      </section>
+      {/* Active Games List */}
+      <section className="max-w-4xl mx-auto mt-10 space-y-4">
+        <h3 className="text-xl font-bold text-base-content">
+          Your Active Games
+        </h3>
+
+        {finding ? (
+          <div className="flex justify-center items-center min-h-[100px]">
+            <span className="loading loading-spinner text-primary"></span>
+          </div>
+        ) : errorFinding ? (
+          <div className="text-error text-sm bg-base-100 border border-error rounded-xl p-4 shadow">
+            Failed to load active games: {errorFinding}
+          </div>
+        ) : activeGames.length === 0 ? (
+          <p className="text-base-content/60">No active games at the moment.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeGames.map((game) => {
+              const opponent =
+                game.player1_id === userStats.id
+                  ? game.player2_username
+                  : game.player1_username;
+
+              return (
+                <div
+                  key={game.id}
+                  className="border border-base-300 bg-base-100 rounded-xl p-5 shadow-lg flex flex-col gap-2"
+                >
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-semibold text-base-content text-lg">
+                      Game #{game.id}
+                    </h4>
+                    <div className={`badge text-primary capitalize`}>
+                      {game.game_status}
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-base-content/70">
+                    <span className="font-medium">Opponent:</span> {opponent}
+                  </div>
+
+                  <button
+                    className="btn btn-primary btn-sm self-end mt-2"
+                    onClick={() => navigate(`/game/${game.id}`)}
+                  >
+                    Enter Game
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );

@@ -96,17 +96,27 @@ export const getUserQuestions = async (req, res) => {
         c.category_name,
         q.approval_status,
         q.rejection_reason,
-        correct_option.option_text AS correct_option,
-        json_agg(o.option_text ORDER BY o.id) AS options
-        FROM questions q
-        JOIN categories c ON q.category_id = c.id
-        JOIN options correct_option ON q.correct_option_id = correct_option.id
-        JOIN question_option qo ON qo.question_id = q.id
-        JOIN options o ON o.id = qo.option_id
-        WHERE q.author_id = $1
-        GROUP BY q.id, q.question_text, q.difficulty, c.category_name,
-                q.approval_status, q.rejection_reason, correct_option.option_text
-        ORDER BY q.id DESC;
+        correct_option.id AS correct_option,
+        json_agg(
+          json_build_object('id', o.id, 'option_text', o.option_text)
+          ORDER BY o.id
+        ) AS options
+      FROM questions q
+      JOIN categories c ON q.category_id = c.id
+      JOIN options correct_option ON q.correct_option_id = correct_option.id
+      JOIN question_option qo ON qo.question_id = q.id
+      JOIN options o ON o.id = qo.option_id
+      WHERE q.author_id = $1
+      GROUP BY
+        q.id,
+        q.question_text,
+        q.difficulty,
+        c.category_name,
+        q.approval_status,
+        q.rejection_reason,
+        correct_option.id
+      ORDER BY q.id DESC;
+
     `,
       [id]
     );

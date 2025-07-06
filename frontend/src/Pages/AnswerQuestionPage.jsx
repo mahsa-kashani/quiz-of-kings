@@ -65,21 +65,23 @@ export default function AnswerQuestionPage() {
     );
   }
   return (
-    <div className="min-h-screen bg-base-200 p-6 flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-center text-primary">
+    <div className="min-h-screen bg-base-200 p-6 flex flex-col gap-6 items-center">
+      <h1 className="text-3xl font-bold text-primary mt-10 mb-5">
         Round {round.round_number}
       </h1>
-      <div className="bg-base-100 p-6 rounded-xl shadow space-y-4">
-        <p className="text-lg font-semibold text-center text-base-content">
+
+      <div className="bg-base-100 p-6 rounded-2xl shadow-xl w-full max-w-2xl space-y-6">
+        <p className="text-lg md:text-xl font-semibold text-center text-base-content leading-relaxed mb-8">
           {round.question.question_text}
         </p>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {round.options.map((opt) => {
             const isSelected = selectedOptionId === opt.id;
             const isCorrect = opt.id === round.question.correct_option_id;
 
-            let btnClass = "btn btn-accent btn-outline";
+            let btnClass =
+              "btn w-full py-3 text-base md:text-lg transition-transform duration-150 ease-in-out btn btn-accent btn-outline hover:scale-105";
 
             if (isAnswered) {
               if (isSelected && isCorrect) {

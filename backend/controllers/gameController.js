@@ -444,3 +444,24 @@ export const submitResult = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getActiveGames = async (req, res) => {
+  const { role, id } = req.user;
+  if (role !== "player" && role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "You don't have access to view games",
+    });
+  }
+  try {
+    const result = await sql.query(
+      `SELECT g.id, g.game_status , u1.id AS player1_id , u1.username AS player1_username , u2.id AS player2_id , u2.username AS player2_username FROM games g JOIN users u1 ON g.player1_id = u1.id JOIN users u2 ON g.player2_id = u2.id WHERE game_status = 'active' AND (g.player1_id = $1 OR g.player2_id = $1) ORDER BY g.created_at DESC`,
+      [id]
+    );
+    const activeGames = result.rows;
+    return res.status(201).json(activeGames);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
