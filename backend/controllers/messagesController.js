@@ -99,3 +99,5 @@ export const addMessage = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const editMessage = async (req, res) => {};

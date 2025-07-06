@@ -14,13 +14,13 @@ import axios from "axios";
 const ChatTab = ({ opponent }) => {
   const { gameId } = useParams();
   const [input, setInput] = useState("");
-  const [editingId, setEditingId] = useState(null);
+  const [editing, setEditing] = useState(null);
   const [replyTo, setReplyTo] = useState(null);
   const messagesEndRef = useRef(null);
   const me = JSON.parse(localStorage.getItem("user"));
   const myId = Number(me.id);
 
-  const { messages, fetchMessages, loading, error, sendMessage } =
+  const { messages, fetchMessages, loading, error, sendMessage, editMessage } =
     useMessageStore();
 
   useEffect(() => {
@@ -29,25 +29,15 @@ const ChatTab = ({ opponent }) => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    try {
-      if (editingId) {
-        await axios.put(`${url}/${editingId}`, payload, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        toast.success("Message edited");
-      } else {
-        sendMessage(gameId, input, opponent.id, replyTo?.id || null);
-      }
-      setInput("");
-      setEditingId(null);
-      setReplyTo(null);
-      fetchMessages(gameId);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to send message");
+    if (editing) {
+      await editMessage(gameId, input, editing);
+    } else {
+      await sendMessage(gameId, input, opponent.id, replyTo?.id || null);
     }
+    setInput("");
+    setEditing(null);
+    setReplyTo(null);
+    await fetchMessages(gameId);
   };
 
   const handleDelete = async (msgId) => {
@@ -114,39 +104,39 @@ const ChatTab = ({ opponent }) => {
               );
             })()}
 
-            <div className="flex flex-col gap-2 max-w-full">
+            <div className={`relative w-fit max-w-full mb-7`}>
               <div
-                className={`chat-bubble rounded-xl px-4 py-3 text-base leading-relaxed whitespace-pre-wrap w-fit text-left ${
+                className={`chat-bubble rounded-xl px-4 py-3 text-base text-left break-words max-w-[50vw] ${
                   msg.sender_id === myId
-                    ? "bg-primary text-primary-content self-start"
-                    : "bg-base-300 text-base-content self-end"
+                    ? "bg-primary text-primary-content "
+                    : "bg-base-300 text-base-content "
                 }`}
               >
                 {msg.content}
               </div>
 
-              <div className="flex justify-start gap-4 items-center text-sm text-white/80">
+              <div className="flex absolute bottom-[-30px] left-[-8px] gap-1 items-center text-sm text-white/80">
                 {msg.sender_id === myId && (
                   <>
                     <button
                       onClick={() => {
                         setInput(msg.content);
-                        setEditingId(msg.id);
+                        setEditing(msg);
                       }}
-                      className="flex items-center gap-1 hover:text-yellow-300 transition"
+                      className="flex items-center gap-1 hover:text-yellow-300 transition btn-ghost rounded-full p-1"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(msg.id)}
-                      className="flex items-center gap-1 hover:text-red-300 transition"
+                      className="flex items-center gap-1 hover:text-red-300 transition btn-ghost rounded-full p-1"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </>
                 )}
                 <button
-                  className="flex items-center gap-1 hover:text-cyan-300 transition"
+                  className="flex items-center gap-1 hover:text-cyan-300 transition btn-ghost rounded-full p-1"
                   onClick={() => setReplyTo(msg)}
                 >
                   <CornerDownRight className="w-4 h-4" />
@@ -175,12 +165,20 @@ const ChatTab = ({ opponent }) => {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           type="text"
-          className="input input-bordered w-full"
+          className="input input-bordered w-full text-white"
           placeholder="Type your message..."
         />
         <button
-          onClick={handleSend}
+          onClick={(e) => {
+            handleSend();
+          }}
           className="btn btn-primary btn-square"
           aria-label="Send"
         >

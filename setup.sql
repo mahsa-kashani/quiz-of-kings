@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS messages (
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   is_edited BOOLEAN DEFAULT FALSE,
+  edited_at TIMESTAMP,
   reply_to_id INT REFERENCES messages(id) ON DELETE SET NULL
 );
 
