@@ -137,62 +137,66 @@ export default function GamePage() {
         <h1 className="text-xl font-bold text-primary">Game #{gameId}</h1>
       </div>
 
-      <div className="flex justify-between bg-base-100 p-4 rounded-xl shadow sticky top-0 z-20">
-        {[me, opponent || {}].map((player, idx) => (
-          <div key={idx} className="text-center w-1/2">
-            <h2 className="font-semibold text-base-content/80">
-              {idx === 0 ? "You" : "Opponent"}
-            </h2>
-            <p className="text-primary font-bold">
-              {player?.username || "Waiting..."}
-            </p>
-            {player && (
-              <p className="text-sm text-base-content/60">
-                XP: {player.xp ?? 0} | Score: {player.score ?? 0}
+      <div className="sticky top-0 z-20">
+        <div className="flex justify-between bg-base-100 p-4 rounded-xl shadow">
+          {[me, opponent || {}].map((player, idx) => (
+            <div key={idx} className="text-center w-1/2">
+              <h2 className="font-semibold text-base-content/80">
+                {idx === 0 ? "You" : "Opponent"}
+              </h2>
+              <p className="text-primary font-bold">
+                {player?.username || "Waiting..."}
               </p>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="tabs tabs-boxed justify-center gap-4">
-        {["match", "chat"].map((tab) => {
-          const isDisabled = tab === "chat" && !opponent;
-          return (
-            <button
-              key={tab}
-              className={`tab transition-all duration-300 ease-in-out rounded-lg ${
-                selectedTab === tab
-                  ? "tab-active bg-primary text-primary-content shadow-md"
-                  : "hover:bg-primary/10 hover:text-primary bg-base-100 text-base-content"
-              }${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-              onClick={() => {
-                if (isDisabled) {
-                  toast.error("Chat is not available until an opponent joins.");
-                  return;
-                }
-                handleTabChange(tab);
-              }}
-            >
-              {tab === "match" ? (
-                <>
-                  <Sword className="w-4 h-4 mr-1" />
-                  Match
-                </>
-              ) : (
-                <div className="relative flex items-center gap-1">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Chat</span>
-                  {unreadCount > 0 && selectedTab !== "chat" && (
-                    <span className="absolute -top-2 -right-3 bg-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full animate-bounce">
-                      {unreadCount}
-                    </span>
-                  )}
-                </div>
+              {player && (
+                <p className="text-sm text-base-content/60">
+                  XP: {player.xp ?? 0} | Score: {player.score ?? 0}
+                </p>
               )}
-            </button>
-          );
-        })}
+            </div>
+          ))}
+        </div>
+
+        <div className="tabs tabs-boxed justify-center gap-4">
+          {["match", "chat"].map((tab) => {
+            const isDisabled = tab === "chat" && !opponent;
+            return (
+              <button
+                key={tab}
+                className={`tab transition-all duration-300 ease-in-out rounded-lg ${
+                  selectedTab === tab
+                    ? "tab-active bg-primary text-primary-content shadow-md"
+                    : "hover:bg-primary/10 hover:text-primary bg-base-100 text-base-content"
+                }${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => {
+                  if (isDisabled) {
+                    toast.error(
+                      "Chat is not available until an opponent joins."
+                    );
+                    return;
+                  }
+                  handleTabChange(tab);
+                }}
+              >
+                {tab === "match" ? (
+                  <>
+                    <Sword className="w-4 h-4 mr-1" />
+                    Match
+                  </>
+                ) : (
+                  <div className="relative flex items-center gap-1">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Chat</span>
+                    {unreadCount > 0 && selectedTab !== "chat" && (
+                      <span className="absolute -top-2 -right-3 bg-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full animate-bounce">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {selectedTab === "match" ? (

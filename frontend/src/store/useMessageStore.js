@@ -55,7 +55,7 @@ export const useMessageStore = create((set) => ({
       toast.success("Message sent");
     } catch (err) {
       console.log(err);
-      const message = err.response?.data?.message || "Failed to send messages";
+      const message = err.response?.data?.message || "Failed to send message";
       toast.error(message);
     }
   },
@@ -64,14 +64,8 @@ export const useMessageStore = create((set) => ({
       await axios.put(
         `${BASE_URL}/${gameId}/${message.id}`,
         {
-          id: message.id,
-          game_id: gameId,
-          sender_id: message.sender_id,
-          receiver_id: message.receiver_id,
+          ...message,
           content,
-          created_at: message.created_at,
-          is_edited: true,
-          reply_to_id: message.reply_to_id,
         },
         {
           headers: {
@@ -82,7 +76,21 @@ export const useMessageStore = create((set) => ({
       toast.success("Message edited");
     } catch (err) {
       console.log(err);
-      const message = err.response?.data?.message || "Failed to edit messages";
+      const message = err.response?.data?.message || "Failed to edit message";
+      toast.error(message);
+    }
+  },
+  deleteMessage: async (gameId, msgId) => {
+    try {
+      await axios.delete(`${BASE_URL}/${gameId}/${msgId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      toast.success("Message deleted");
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Failed to delete message";
       toast.error(message);
     }
   },

@@ -28,7 +28,7 @@ export const getMessages = async (req, res) => {
     }
     const messages = await sql.query(
       `
-        SELECT * FROM messages WHERE game_id=$1
+        SELECT * FROM messages WHERE game_id=$1 ORDER BY created_at
         `,
       [gameId]
     );
@@ -78,7 +78,7 @@ export const addMessage = async (req, res) => {
 
     await sql.query("BEGIN");
 
-    const insertResult = await sql.query(
+    await sql.query(
       `INSERT INTO messages 
         (game_id, sender_id, receiver_id, content, reply_to_id) 
         VALUES ($1, $2, $3, $4, $5)
@@ -91,7 +91,6 @@ export const addMessage = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Message sent",
-      data: insertResult.rows[0],
     });
   } catch (err) {
     await sql.query("ROLLBACK");
@@ -100,4 +99,155 @@ export const addMessage = async (req, res) => {
   }
 };
 
-export const editMessage = async (req, res) => {};
+export const updateMessage = async (req, res) => {
+  const { id, role } = req.user;
+  const { gameId, messageId } = req.params;
+  const { content } = req.body;
+
+  if (role !== "player" && role !== "admin")
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to edit messages.",
+    });
+
+  if (!content || content.trim() === "") {
+    return res.status(400).json({
+      success: false,
+      message: "Message content is required.",
+    });
+  }
+  try {
+    const result = await sql.query("SELECT * FROM games WHERE id = $1", [
+      gameId,
+    ]);
+    const game = result.rows[0];
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    if (id !== game.player1_id && id !== game.player2_id && role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied: You do not have permission to edit message in this game.",
+      });
+    }
+
+    const msgResult = await sql.query(
+      `SELECT * FROM messages WHERE id = $1 AND game_id = $2`,
+      [messageId, gameId]
+    );
+
+    const message = msgResult.rows[0];
+    if (!message) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Message not found" });
+    }
+
+    if (role !== "admin" && message.sender_id !== id) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only delete your own messages.",
+      });
+    }
+
+    await sql.query("BEGIN");
+
+    await sql.query(
+      `
+      UPDATE messages
+      SET
+        content = $1,
+        is_edited = true,
+        edited_at = CURRENT_TIMESTAMP
+      WHERE id = $2 AND game_id = $3
+      `,
+      [content, messageId, gameId]
+    );
+
+    await sql.query("COMMIT");
+
+    return res.status(201).json({
+      success: true,
+      message: "Message edited",
+    });
+  } catch (err) {
+    await sql.query("ROLLBACK");
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteMessage = async (req, res) => {
+  const { id, role } = req.user;
+  const { gameId, messageId } = req.params;
+
+  if (role !== "player" && role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to delete messages.",
+    });
+  }
+
+  try {
+    const result = await sql.query("SELECT * FROM games WHERE id = $1", [
+      gameId,
+    ]);
+    const game = result.rows[0];
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    if (id !== game.player1_id && id !== game.player2_id && role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied: You do not have permission to delete message in this game.",
+      });
+    }
+
+    const msgResult = await sql.query(
+      `SELECT * FROM messages WHERE id = $1 AND game_id = $2`,
+      [messageId, gameId]
+    );
+
+    const message = msgResult.rows[0];
+    if (!message) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Message not found" });
+    }
+
+    if (role !== "admin" && message.sender_id !== id) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only delete your own messages.",
+      });
+    }
+
+    await sql.query("BEGIN");
+
+    await sql.query(`DELETE FROM messages WHERE id = $1 AND game_id = $2`, [
+      messageId,
+      gameId,
+    ]);
+
+    await sql.query("COMMIT");
+
+    return res.status(200).json({
+      success: true,
+      message: "Message deleted successfully",
+    });
+  } catch (err) {
+    await sql.query("ROLLBACK");
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
