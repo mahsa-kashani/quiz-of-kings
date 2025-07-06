@@ -18,7 +18,7 @@ export const getUsers = async (req, res) => {
   }
 };
 export const toggleBanStatus = async (req, res) => {
-  const { role } = req.user;
+  const { role, id } = req.user;
   const { userId } = req.params;
   const { is_banned } = req.body;
   console.log(is_banned);
@@ -35,10 +35,14 @@ export const toggleBanStatus = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "User not found!" });
-    if (user.user_role === "admin")
+    if (user.user_role === "admin" && user.id !== id)
       return res
         .status(403)
         .json({ success: false, message: "You can't ban Admin!" });
+    if (user.id === id)
+      return res
+        .status(403)
+        .json({ success: false, message: "You can't ban yourself!" });
     await sql.query(`BEGIN`);
     await sql.query(`UPDATE users SET is_banned = $1 WHERE id = $2`, [
       is_banned,

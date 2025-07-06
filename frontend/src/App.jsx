@@ -12,6 +12,10 @@ import QuestionStatusPage from "./Pages/QuestionStatusPage";
 import SelectCategoryPage from "./Pages/SelectCategoryPage";
 import GamePage from "./Pages/GamePage";
 import AnswerQuestionPage from "./Pages/AnswerQuestionPage";
+import AdminQuestionsPage from "./Pages/AdminPages/AdminQuestionsPage";
+import AdminUsersPage from "./Pages/AdminPages/AdminUsersPage";
+import AdminChatsPage from "./Pages/AdminPages/AdminChatsPage";
+import Admin from "./components/Dashboards/Admin";
 
 function App() {
   return (
@@ -35,6 +39,10 @@ function App() {
           path="/game/:gameId/round/:roundId"
           element={<AnswerQuestionPage />}
         />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/questions" element={<AdminQuestionsPage />} />
+        <Route path="/admin/users" element={<AdminUsersPage />} />
+        <Route path="/admin/chats" element={<AdminChatsPage />} />
       </Routes>
       <Toaster />
     </div>

@@ -10,6 +10,24 @@ export const useMessageStore = create((set) => ({
   unreadCount: 0,
   selectedTab: "match",
   messages: [],
+  allChats: [],
+  fetchAllChats: async () => {
+    set({ loading: true });
+    try {
+      const { data } = await axios.get(`${BASE_URL}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      set({ allChats: data });
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Failed to fetch messages";
+      set({ allChats: [], error: message });
+    } finally {
+      set({ loading: false });
+    }
+  },
 
   setSelectedTab: (tab) => {
     set({ selectedTab: tab });

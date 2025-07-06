@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 
 const TABS = ["pending", "approved", "rejected"];
 
-export default function ReviewerDashboard() {
+export default function ReviewerDashboard({ page }) {
   const {
     reviewQuestions,
     fetchReviewQuestions,
@@ -43,7 +43,7 @@ export default function ReviewerDashboard() {
     reviewQuestions?.filter((q) => q.approval_status === selectedTab) || [];
   return (
     <div className="min-h-screen bg-base-200 px-6 py-10">
-      <BackToPage page="home" />
+      <BackToPage page={page} />
       <h2 className="text-4xl font-bold text-center text-info mb-8">
         Review Questions
       </h2>

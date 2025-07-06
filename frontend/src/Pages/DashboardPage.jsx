@@ -1,13 +1,21 @@
-import React from "react";
+import { useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import Player from "../components/Dashboards/Player";
 import Reviewer from "../components/Dashboards/Reviewer";
 import Moderator from "../components/Dashboards/Moderator";
 import Admin from "../components/Dashboards/Admin";
-import { Navigate, Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (user?.user_role === "admin" && location.pathname !== "/admin") {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, location.pathname, navigate]);
 
   if (!user) {
     // user not logged in or null
@@ -44,11 +52,9 @@ export default function DashboardPage() {
     case "player":
       return <Player />;
     case "reviewer":
-      return <Reviewer />;
+      return <Reviewer page={"home"} />;
     case "moderator":
       return <Moderator />;
-    case "admin":
-      return <Admin />;
     default:
       return (
         <div className="min-h-screen flex items-center justify-center text-center px-4">

@@ -251,3 +251,62 @@ export const deleteMessage = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getAllMessages = async (req, res) => {
+  const { role } = req.user;
+  if (role !== "admin")
+    return res.status(403).json({
+      success: false,
+      message: "only admin can access chats",
+    });
+  try {
+    // get games with messages
+    const { rows: gamesWithChats } = await sql.query(`
+      SELECT DISTINCT g.id AS game_id,
+             g.player1_id, u1.username AS player1_username,
+             g.player2_id, u2.username AS player2_username
+      FROM messages m
+      JOIN games g ON g.id = m.game_id
+      LEFT JOIN users u1 ON g.player1_id = u1.id
+      LEFT JOIN users u2 ON g.player2_id = u2.id
+      ORDER BY g.id DESC
+    `);
+
+    // get all messages
+    const { rows: messages } = await sql.query(`
+      SELECT
+        m.id,
+        m.game_id,
+        m.sender_id,
+        u.username AS sender_username,
+        m.content,
+        m.created_at
+      FROM messages m
+      LEFT JOIN users u ON m.sender_id = u.id
+      ORDER BY m.created_at ASC
+    `);
+
+    // grouping messages for games
+    const chats = gamesWithChats.map((game) => {
+      const chatMessages = messages.filter(
+        (msg) => msg.game_id === game.game_id
+      );
+      return {
+        id: game.game_id,
+        game_id: game.game_id,
+        player1_id: game.player1_id,
+        player2_id: game.player2_id,
+        player1_username: game.player1_username || "Unknown",
+        player2_username: game.player2_username || "Unknown",
+        messages: chatMessages,
+      };
+    });
+
+    return res.status(200).json(chats);
+  } catch (err) {
+    console.error("Admin chat fetch error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};

@@ -112,7 +112,7 @@ const ChatTab = ({ opponent }) => {
                 if (!repliedMsg) return null;
 
                 return (
-                  <div className="bg-base-200 p-2 rounded text-xs text-base-content/60">
+                  <div className="bg-base-200 p-2 rounded text-xs text-base-content/60 flex items-start w-fit">
                     <CornerDownRight className="w-5 h-5 inline-block mr-1" />
                     <span
                       onClick={() =>
