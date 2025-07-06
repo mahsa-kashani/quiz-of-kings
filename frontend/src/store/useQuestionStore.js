@@ -34,6 +34,43 @@ export const useQuestionStore = create((set, get) => ({
   },
   categories: [],
   userQuestions: [],
+  reviewQuestions: [],
+  fetchReviewQuestions: async () => {
+    set({ loading: true });
+    try {
+      const { data } = await axiosInstance.get("/review");
+      set({ reviewQuestions: data });
+    } catch (err) {
+      console.log(err);
+      const message = err.response?.data?.message || "Something went wrong";
+      set({
+        error: message,
+        reviewQuestions: [],
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  approveQuestion: async (questionId) => {
+    try {
+      await axiosInstance.put(`/${questionId}/approve`);
+    } catch (err) {
+      console.log(err);
+      const message =
+        err.response?.data?.message || "Failed to approve question";
+      toast.error(message);
+    }
+  },
+  rejectQuestion: async (questionId, reason) => {
+    try {
+      await axiosInstance.put(`/${questionId}/reject`, reason);
+    } catch (err) {
+      console.log(err);
+      const message =
+        err.response?.data?.message || "Failed to reject question";
+      toast.error(message);
+    }
+  },
   fetchUserQuestions: async () => {
     set({ loading: true });
     try {

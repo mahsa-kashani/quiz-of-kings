@@ -128,3 +128,106 @@ export const getUserQuestions = async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 };
+
+export const getQuestions = async (req, res) => {
+  const { id, role } = req.user;
+  if (role !== "reviewer" && role !== "admin")
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to view questions.",
+    });
+  try {
+    const result = await sql.query(
+      `SELECT
+        q.id,
+        q.question_text,
+        q.difficulty,
+        c.category_name,
+        q.approval_status,
+        q.rejection_reason,
+        correct_option.id AS correct_option,
+        json_agg(
+          json_build_object('id', o.id, 'option_text', o.option_text)
+          ORDER BY o.id
+        ) AS options
+      FROM questions q
+      JOIN categories c ON q.category_id = c.id
+      JOIN options correct_option ON q.correct_option_id = correct_option.id
+      JOIN question_option qo ON qo.question_id = q.id
+      JOIN options o ON o.id = qo.option_id
+      GROUP BY
+        q.id,
+        q.question_text,
+        q.difficulty,
+        c.category_name,
+        q.approval_status,
+        q.rejection_reason,
+        correct_option.id
+      ORDER BY q.id DESC;
+
+    `
+    );
+    return res.status(201).json(result.rows);
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const approveQuestion = async (req, res) => {
+  const { role } = req.user;
+  const { questionId } = req.params;
+  if (role !== "reviewer" && role !== "admin")
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to approve questions.",
+    });
+  try {
+    await sql.query(`BEGIN`);
+    await sql.query(
+      `UPDATE questions SET approval_status = 'approved' WHERE id=$1`,
+      [questionId]
+    );
+    await sql.query(`COMMIT`);
+    return res.status(201).json({
+      success: true,
+      message: "Question approved successfully.",
+    });
+  } catch (err) {
+    await sql.query(`ROLLBACK`);
+    console.log(err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+export const rejectQuestion = async (req, res) => {
+  const { role } = req.user;
+  const { questionId } = req.params;
+  const reason = req.body;
+  if (role !== "reviewer" && role !== "admin")
+    return res.status(403).json({
+      success: false,
+      message: "You don't have permission to reject questions.",
+    });
+  try {
+    await sql.query(`BEGIN`);
+    await sql.query(
+      `UPDATE questions SET approval_status = 'rejected' , rejection_reason = $2 WHERE id=$1`,
+      [questionId, reason]
+    );
+    await sql.query(`COMMIT`);
+    return res.status(201).json({
+      success: true,
+      message: "Question rejected successfully.",
+    });
+  } catch (err) {
+    await sql.query(`ROLLBACK`);
+    console.log(err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};

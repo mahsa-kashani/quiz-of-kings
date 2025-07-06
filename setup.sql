@@ -419,7 +419,9 @@ EXECUTE FUNCTION insert_initial_leaderboard_stats();
 INSERT INTO users (username, email, pass, user_role) VALUES
   ('ali123', 'ali@example.com', 'securepass1', 'player'),
   ('sara456', 'sara@example.com', 'securepass2', 'player'),
-  ('admin1', 'admin@example.com', 'adminpass', 'admin'),
+  ('admin1', 'admin@example.com', '$2a$10$IAaMMZIPdD.GGgNnXyVLFuiLAWgjRd7d.kAL6U6uMZ2R.ZB9vttmq', 'admin'),
+  ('reviewer','rev@gmail.com','$2a$10$uFzVhmcNrF4TK8.rJjGXJ.XOiwgA68eiEk7ohdNksd9V8O5a1CrgO','reviewer'),
+  ('moderator','mod@gmail.com','$2a$10$LGNixej9Q7w0PrCnln7O4.2zuCVazsASZM90Y.IUhskLiFbdH94G6','moderator'),
   ('mahsa', 'mahsa12.kashani@gmail.com', '$2b$10$cxJLILUav/1tvxOD8WnyhOPAydJ6Swx6PupxCYbKb2pOouQRrmu.e', 'player'),
   ('ali', 'ali123@gmail.com', '$2b$10$Fu0P0Gbk63jdKUgXbWHDi.mMFuCp4CzB3Si7DNv4DHSkId5ayX5Nq', 'player');
 
