@@ -82,7 +82,6 @@ CREATE TABLE IF NOT EXISTS user_statistics (
 
 CREATE TABLE IF NOT EXISTS leaderboard (
   user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  username VARCHAR(30) UNIQUE NOT NULL CHECK (char_length(username) >= 3) REFERENCES users(username),
   score INT DEFAULT 0
 );
 
@@ -156,6 +155,7 @@ SELECT
 FROM users u
 LEFT JOIN game_scores gs ON u.id = gs.user_id
 LEFT JOIN answer_scores ascore ON u.id = ascore.user_id
+WHERE u.user_role = 'player'
 ORDER BY score DESC;
 
 
@@ -209,6 +209,7 @@ SELECT
 FROM users u
 LEFT JOIN game_scores gs ON u.id = gs.user_id
 LEFT JOIN answer_scores ascore ON u.id = ascore.user_id
+WHERE u.user_role = 'player'
 ORDER BY score DESC;
 
 
@@ -396,10 +397,13 @@ EXECUTE FUNCTION update_scores_xp();
 CREATE OR REPLACE FUNCTION insert_initial_leaderboard_stats()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO leaderboard (user_id,username)
-  VALUES (NEW.id,NEW.username);
-  INSERT INTO user_statistics(user_id)
-  VALUES (NEW.id);
+  IF NEW.user_role = 'player' THEN
+    INSERT INTO leaderboard (user_id)
+    VALUES (NEW.id);
+    INSERT INTO user_statistics(user_id)
+    VALUES (NEW.id);
+  END IF;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

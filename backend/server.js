@@ -9,6 +9,7 @@ import dashboardRoute from "./routes/dashboardRoute.js";
 import questionRoute from "./routes/questionRoute.js";
 import gameRoute from "./routes/gameRoute.js";
 import messagesRoute from "./routes/messagesRoute.js";
+import userRoute from "./routes/userRoute.js";
 import { sql } from "./config/db.js";
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use("/api/dashboard", authenticateToken, dashboardRoute);
 app.use("/api/questions", authenticateToken, questionRoute);
 app.use("/api/messages", authenticateToken, messagesRoute);
 app.use("/api/game", authenticateToken, gameRoute);
+app.use("/api/users", authenticateToken, userRoute);
 
 app.listen(PORT, () => {
   console.log("server is running on port " + PORT);

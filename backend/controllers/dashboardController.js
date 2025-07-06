@@ -46,7 +46,7 @@ export const getUserStats = async (req, res) => {
 export const getLeaderboardGlobal = async (req, res) => {
   try {
     const result = await sql.query(
-      `SELECT * FROM leaderboard ORDER BY score DESC`
+      `SELECT l.user_id,l.score,u.username FROM leaderboard l JOIN users u ON l.user_id = u.id ORDER BY score DESC`
     );
     return res.status(201).json({ success: true, leaderboard: result.rows });
   } catch (err) {
