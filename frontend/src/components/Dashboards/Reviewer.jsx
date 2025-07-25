@@ -34,6 +34,7 @@ export default function ReviewerDashboard({ page }) {
   };
 
   const handleApprove = async (questionId) => {
+    delete rejectionReasons[questionId];
     await approveQuestion(questionId);
     toast.success("Question approved");
     await fetchReviewQuestions();

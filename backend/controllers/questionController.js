@@ -187,7 +187,7 @@ export const approveQuestion = async (req, res) => {
   try {
     await sql.query(`BEGIN`);
     await sql.query(
-      `UPDATE questions SET approval_status = 'approved' WHERE id=$1`,
+      `UPDATE questions SET approval_status = 'approved', rejection_reason=null WHERE id=$1`,
       [questionId]
     );
     await sql.query(`COMMIT`);
@@ -206,7 +206,7 @@ export const approveQuestion = async (req, res) => {
 export const rejectQuestion = async (req, res) => {
   const { role } = req.user;
   const { questionId } = req.params;
-  const reason = req.body;
+  const { reason } = req.body;
   if (role !== "reviewer" && role !== "admin")
     return res.status(403).json({
       success: false,
@@ -215,8 +215,8 @@ export const rejectQuestion = async (req, res) => {
   try {
     await sql.query(`BEGIN`);
     await sql.query(
-      `UPDATE questions SET approval_status = 'rejected' , rejection_reason = $2 WHERE id=$1`,
-      [questionId, reason]
+      `UPDATE questions SET approval_status = 'rejected' , rejection_reason = $1 WHERE id=$2`,
+      [reason, questionId]
     );
     await sql.query(`COMMIT`);
     return res.status(201).json({

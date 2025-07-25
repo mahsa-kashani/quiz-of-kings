@@ -42,7 +42,7 @@ export const toggleBanStatus = async (req, res) => {
     if (user.id === id)
       return res
         .status(403)
-        .json({ success: false, message: "You can't ban yourself!" });
+        .json({ success: false, message: "You can't ban/unban yourself!" });
     await sql.query(`BEGIN`);
     await sql.query(`UPDATE users SET is_banned = $1 WHERE id = $2`, [
       is_banned,

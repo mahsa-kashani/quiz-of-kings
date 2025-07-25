@@ -447,24 +447,24 @@ INSERT INTO options (option_text) VALUES
   ('1939'),
   ('1918'),
   ('1965'),
-    ('Alan Turing'),       -- id = 9
-  ('Bill Gates'),        -- id = 10
-  ('Steve Jobs'),        -- id = 11
-  ('Tim Berners-Lee'),   -- id = 12
+    ('Alan Turing'), 
+  ('Bill Gates'),        
+  ('Steve Jobs'),        
+  ('Tim Berners-Lee'),  
 
-  ('Shakespeare'),       -- id = 13
-  ('Hemingway'),         -- id = 14
-  ('Tolstoy'),           -- id = 15
-  ('Dante'),             -- id = 16
+  ('Shakespeare'),      
+  ('Hemingway'),      
+  ('Tolstoy'),         
+  ('Dante'),        
 
-  ('Mount Everest'),     -- id = 17
-  ('K2'),                -- id = 18
-  ('Kilimanjaro'),       -- id = 19
-  ('Alps'),              -- id = 20
+  ('Mount Everest'),    
+  ('K2'),           
+  ('Kilimanjaro'),     
+  ('Alps'),        
 
-  ('Pi'),                -- id = 21
-  ('Euler''s Number'),     -- id = 22
-  ('Golden Ratio'),      -- id = 23
+  ('Pi'),               
+  ('Euler''s Number'), 
+  ('Golden Ratio'),    
   ('Imaginary Unit');  
 
 INSERT INTO questions (question_text, difficulty, correct_option_id, category_id, author_id, approval_status) VALUES

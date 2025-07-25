@@ -63,7 +63,7 @@ export const useQuestionStore = create((set, get) => ({
   },
   rejectQuestion: async (questionId, reason) => {
     try {
-      await axiosInstance.put(`/${questionId}/reject`, reason);
+      await axiosInstance.put(`/${questionId}/reject`, { reason });
     } catch (err) {
       console.log(err);
       const message =

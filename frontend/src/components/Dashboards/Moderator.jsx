@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useUserStore } from "../../store/useUserStore";
-import { toast } from "react-hot-toast";
 import BackToPage from "../../components/BackToPage";
 
 export default function Moderator() {
